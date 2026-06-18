@@ -51,6 +51,76 @@ public class DialogHomesUI implements HomesUI {
         return sb.toString().trim();
     }
 
+    private String getMaterialEmoji(String material) {
+        if (material == null) return "🏡 ";
+        switch (material.toUpperCase(Locale.ROOT)) {
+            case "RED_BED":
+            case "BLUE_BED":
+            case "GREEN_BED":
+            case "YELLOW_BED":
+            case "WHITE_BED":
+            case "ORANGE_BED":
+            case "MAGENTA_BED":
+            case "LIGHT_BLUE_BED":
+            case "LIME_BED":
+            case "PINK_BED":
+            case "GRAY_BED":
+            case "LIGHT_GRAY_BED":
+            case "CYAN_BED":
+            case "PURPLE_BED":
+            case "BROWN_BED":
+            case "BLACK_BED":
+                return "🛏 ";
+            case "COMPASS":
+                return "🧭 ";
+            case "CHEST":
+            case "ENDER_CHEST":
+            case "BARREL":
+            case "SHULKER_BOX":
+                return "📦 ";
+            case "DIAMOND":
+            case "DIAMOND_BLOCK":
+                return "💎 ";
+            case "EMERALD":
+            case "EMERALD_BLOCK":
+                return "❇ ";
+            case "GOLD_INGOT":
+            case "GOLD_BLOCK":
+                return "🪙 ";
+            case "IRON_INGOT":
+            case "IRON_BLOCK":
+                return "⚙ ";
+            case "ENDER_PEARL":
+            case "EYE_OF_ENDER":
+                return "🔮 ";
+            case "BOOK":
+            case "WRITTEN_BOOK":
+            case "WRITABLE_BOOK":
+            case "ENCHANTED_BOOK":
+                return "📖 ";
+            case "CRAFTING_TABLE":
+            case "FURNACE":
+                return "🛠 ";
+            case "GRASS_BLOCK":
+            case "DIRT":
+            case "STONE":
+            case "OAK_LOG":
+                return "🌱 ";
+            case "FIREWORK_ROCKET":
+            case "GUNPOWDER":
+                return "🎆 ";
+            case "IRON_SWORD":
+            case "DIAMOND_SWORD":
+            case "NETHERITE_SWORD":
+            case "GOLDEN_SWORD":
+            case "STONE_SWORD":
+            case "WOODEN_SWORD":
+                return "⚔ ";
+            default:
+                return "🏡 ";
+        }
+    }
+
     private Component parseColor(String text) {
         if (plugin.getConfigManager().isAllowColoredNames()) {
             return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
@@ -75,7 +145,8 @@ public class DialogHomesUI implements HomesUI {
                 if (isLocked) {
                     label = Component.text("🔒 Locked Home", NamedTextColor.RED);
                 } else {
-                    label = parseColor("&a" + home.getName());
+                    String emoji = getMaterialEmoji(home.getIconMaterial());
+                    label = Component.text(emoji).append(parseColor(home.getName()));
                 }
 
                 List<Component> tooltipLines = new ArrayList<>();
