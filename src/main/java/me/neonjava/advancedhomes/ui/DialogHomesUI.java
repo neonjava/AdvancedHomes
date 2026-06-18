@@ -1,0 +1,502 @@
+package me.neonjava.advancedhomes.ui;
+
+import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.advancedhomes.model.Home;
+import io.papermc.paper.dialog.Dialog;
+import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.DialogBase;
+import io.papermc.paper.registry.data.dialog.DialogRegistryEntry;
+import io.papermc.paper.registry.data.dialog.action.DialogAction;
+import io.papermc.paper.registry.data.dialog.body.DialogBody;
+import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.type.DialogType;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickCallback;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+public class DialogHomesUI implements HomesUI {
+    private final AdvancedHomesPlugin plugin;
+    private final ClickCallback.Options defaultOptions;
+
+    public DialogHomesUI(AdvancedHomesPlugin plugin) {
+        this.plugin = plugin;
+        this.defaultOptions = ClickCallback.Options.builder()
+                .lifetime(Duration.ofMinutes(10))
+                .uses(ClickCallback.UNLIMITED_USES)
+                .build();
+    }
+
+    private void runSync(Player player, Runnable runnable) {
+        player.getScheduler().run(plugin, task -> runnable.run(), null);
+    }
+
+    private String formatMaterialName(String name) {
+        String[] parts = name.split("_");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (part.isEmpty()) continue;
+            sb.append(Character.toUpperCase(part.charAt(0)))
+              .append(part.substring(1).toLowerCase(Locale.ROOT))
+              .append(" ");
+        }
+        return sb.toString().trim();
+    }
+
+    private Component parseColor(String text) {
+        if (plugin.getConfigManager().isAllowColoredNames()) {
+            return LegacyComponentSerializer.legacyAmpersand().deserialize(text);
+        } else {
+            return Component.text(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', text)));
+        }
+    }
+
+    @Override
+    public void openMainHomesMenu(Player player) {
+        List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
+        int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
+
+        List<ActionButton> buttons = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            final int slotIndex = i;
+            if (i < homes.size()) {
+                Home home = homes.get(i);
+                boolean isLocked = i >= limit;
+                
+                Component label;
+                if (isLocked) {
+                    label = Component.text("🔒 Locked Home", NamedTextColor.RED);
+                } else {
+                    label = parseColor("&a" + home.getName());
+                }
+
+                List<Component> tooltipLines = new ArrayList<>();
+                tooltipLines.add(Component.text("Home Name: ").append(parseColor(home.getName())));
+                if (isLocked) {
+                    tooltipLines.add(Component.text("STATUS: LOCKED (Upgrade rank to access)", NamedTextColor.RED));
+                } else {
+                    tooltipLines.add(Component.text("STATUS: ACTIVE", NamedTextColor.GREEN));
+                }
+
+                Component tooltip = Component.empty();
+                for (int j = 0; j < tooltipLines.size(); j++) {
+                    tooltip = tooltip.append(tooltipLines.get(j));
+                    if (j < tooltipLines.size() - 1) {
+                        tooltip = tooltip.append(Component.newline());
+                    }
+                }
+
+                DialogAction action = DialogAction.customClick((response, audience) -> {
+                    runSync(player, () -> {
+                        openHomeManagementMenu(player, home, isLocked);
+                    });
+                }, defaultOptions);
+
+                buttons.add(ActionButton.create(label, tooltip, 120, action));
+            } else if (i < limit) {
+                Component label = Component.text("+ Create Home", NamedTextColor.GREEN);
+                Component tooltip = Component.text("Empty Home Slot. Click to set a home at your current location.");
+                DialogAction action = DialogAction.customClick((response, audience) -> {
+                    runSync(player, () -> {
+                        openCreateHomeFlow(player, slotIndex);
+                    });
+                }, defaultOptions);
+                buttons.add(ActionButton.create(label, tooltip, 120, action));
+            } else {
+                Component label = Component.text("🔒 Locked Slot", NamedTextColor.DARK_GRAY);
+                Component tooltip = Component.text("Locked by Rank. Upgrade to unlock this slot.");
+                DialogAction action = DialogAction.customClick((response, audience) -> {
+                    player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
+                }, defaultOptions);
+                buttons.add(ActionButton.create(label, tooltip, 120, action));
+            }
+        }
+
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Homes Menu"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Click a home slot to manage it:"))))
+                    .build());
+            builder.type(DialogType.multiAction(buttons, ActionButton.create(Component.text("Close"), null, 100, null), 5));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    @Override
+    public void openCreateHomeFlow(Player player, int slotIndex) {
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Create Home"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Create a home at your current location?"))))
+                    .build());
+
+            ActionButton yesBtn = ActionButton.create(Component.text("Create Home", NamedTextColor.GREEN), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openCreateHomeTextInput(player);
+                        });
+                    }, defaultOptions));
+
+            ActionButton noBtn = ActionButton.create(Component.text("Cancel", NamedTextColor.RED), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openMainHomesMenu(player);
+                        });
+                    }, defaultOptions));
+
+            builder.type(DialogType.confirmation(yesBtn, noBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    private void openCreateHomeTextInput(Player player) {
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Home Name Input"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Type your home name below:"))))
+                    .inputs(List.of(DialogInput.text("name", Component.text("Home Name"))
+                            .initial("Home")
+                            .maxLength(16)
+                            .build()))
+                    .build());
+
+            ActionButton confirmBtn = ActionButton.create(Component.text("Confirm", NamedTextColor.GREEN), null, 120,
+                    DialogAction.customClick((response, audience) -> {
+                        String name = response.getText("name");
+                        runSync(player, () -> {
+                            if (name == null || name.trim().isEmpty()) {
+                                player.sendMessage(ChatColor.RED + "Home name cannot be empty.");
+                                openCreateHomeTextInput(player);
+                                return;
+                            }
+                            plugin.getHomeManager().addHome(player, name.trim());
+                        });
+                    }, defaultOptions));
+
+            ActionButton cancelBtn = ActionButton.create(Component.text("Cancel", NamedTextColor.RED), null, 120,
+                    DialogAction.customClick((response, audience) -> {
+                        runSync(player, () -> {
+                            openMainHomesMenu(player);
+                        });
+                    }, defaultOptions));
+
+            builder.type(DialogType.confirmation(confirmBtn, cancelBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    @Override
+    public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
+        List<ActionButton> buttons = new ArrayList<>();
+
+        if (!isLocked) {
+            // Teleport button
+            buttons.add(ActionButton.create(Component.text("⚡ Teleport to Home"), Component.text("Click to teleport after countdown"), 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            player.closeInventory();
+                            plugin.getHomeManager().teleportPlayer(player, home);
+                        });
+                    }, defaultOptions)));
+
+            // Rename button
+            buttons.add(ActionButton.create(Component.text("✏ Rename Home"), Component.text("Change the home name"), 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openRenameHomeTextInput(player, home);
+                        });
+                    }, defaultOptions)));
+
+            // Change Icon button
+            buttons.add(ActionButton.create(Component.text("🖼 Change Icon"), Component.text("Select a new icon material"), 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openIconBrowser(player, home, false, 0, "", "all");
+                        });
+                    }, defaultOptions)));
+        }
+
+        // Delete button (accessible even if locked!)
+        buttons.add(ActionButton.create(Component.text("❌ Delete Home", NamedTextColor.RED), Component.text("Permanently delete this home"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openDeleteConfirmation(player, home);
+                    });
+                }, defaultOptions)));
+
+        // Back button
+        buttons.add(ActionButton.create(Component.text("⬅ Back"), Component.text("Return to homes list"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openMainHomesMenu(player);
+                    });
+                }, defaultOptions)));
+
+        Component title = isLocked ? Component.text("Manage Home (Locked by Rank)") : Component.text("Manage Home: ").append(parseColor(home.getName()));
+
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(title)
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(
+                            DialogBody.plainMessage(Component.text(isLocked ? "⚠️ LOCKED: You can only delete this home." : "Select an action below:"))
+                    ))
+                    .build());
+            builder.type(DialogType.multiAction(buttons, null, 1));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    private void openRenameHomeTextInput(Player player, Home home) {
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Rename Home"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Enter new name for home '" + home.getName() + "':"))))
+                    .inputs(List.of(DialogInput.text("name", Component.text("New Name"))
+                            .initial(home.getName())
+                            .maxLength(16)
+                            .build()))
+                    .build());
+
+            ActionButton confirmBtn = ActionButton.create(Component.text("Confirm", NamedTextColor.GREEN), null, 120,
+                    DialogAction.customClick((response, audience) -> {
+                        String name = response.getText("name");
+                        runSync(player, () -> {
+                            if (name == null || name.trim().isEmpty()) {
+                                player.sendMessage(ChatColor.RED + "Home name cannot be empty.");
+                                openRenameHomeTextInput(player, home);
+                                return;
+                            }
+                            plugin.getHomeManager().renameHome(player, home.getName(), name.trim());
+                            openMainHomesMenu(player);
+                        });
+                    }, defaultOptions));
+
+            ActionButton cancelBtn = ActionButton.create(Component.text("Cancel", NamedTextColor.RED), null, 120,
+                    DialogAction.customClick((response, audience) -> {
+                        runSync(player, () -> {
+                            openHomeManagementMenu(player, home, false);
+                        });
+                    }, defaultOptions));
+
+            builder.type(DialogType.confirmation(confirmBtn, cancelBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    @Override
+    public void openIconBrowser(Player player, Home home, boolean isLocked, int page, String searchQuery, String category) {
+        List<Material> filtered = filterMaterials(searchQuery, category);
+        int itemsPerPage = 8;
+        int totalPagesCalc = (filtered.size() + itemsPerPage - 1) / itemsPerPage;
+        if (totalPagesCalc == 0) totalPagesCalc = 1;
+        final int totalPages = totalPagesCalc;
+
+        int finalPage = Math.max(0, Math.min(page, totalPages - 1));
+        int startIndex = finalPage * itemsPerPage;
+        int endIndex = Math.min(startIndex + itemsPerPage, filtered.size());
+
+        List<ActionButton> buttons = new ArrayList<>();
+
+        // Add search box query display
+        Component queryInfo = Component.text("Search: " + (searchQuery.isEmpty() ? "[None]" : searchQuery) + " | Category: " + category.toUpperCase());
+        
+        // Match items
+        for (int i = startIndex; i < endIndex; i++) {
+            Material mat = filtered.get(i);
+            DialogAction selectAction = DialogAction.customClick((res, aud) -> {
+                runSync(player, () -> {
+                    plugin.getHomeManager().updateIcon(player, home.getName(), mat.name());
+                    openHomeManagementMenu(player, home, isLocked);
+                });
+            }, defaultOptions);
+            buttons.add(ActionButton.create(Component.text(formatMaterialName(mat.name())), Component.text("Select this material as your home icon"), 120, selectAction));
+        }
+
+        // Search options button (opens search text input)
+        buttons.add(ActionButton.create(Component.text("🔍 Search Query", NamedTextColor.YELLOW), Component.text("Enter text search query"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openSearchTextInput(player, home, isLocked, category);
+                    });
+                }, defaultOptions)));
+
+        // Category filter buttons
+        buttons.add(ActionButton.create(Component.text("📁 Category: " + category.toUpperCase(), NamedTextColor.YELLOW), Component.text("Cycle categories: ALL -> BLOCKS -> FOOD -> TOOLS -> MISC"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        String nextCategory = getNextCategory(category);
+                        openIconBrowser(player, home, isLocked, 0, searchQuery, nextCategory);
+                    });
+                }, defaultOptions)));
+
+        // Navigation
+        if (finalPage > 0) {
+            buttons.add(ActionButton.create(Component.text("◀ Previous Page"), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openIconBrowser(player, home, isLocked, finalPage - 1, searchQuery, category);
+                        });
+                    }, defaultOptions)));
+        }
+
+        if (finalPage < totalPages - 1) {
+            buttons.add(ActionButton.create(Component.text("Next Page ▶"), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openIconBrowser(player, home, isLocked, finalPage + 1, searchQuery, category);
+                        });
+                    }, defaultOptions)));
+        }
+
+        buttons.add(ActionButton.create(Component.text("⬅ Back"), null, 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openHomeManagementMenu(player, home, isLocked);
+                    });
+                }, defaultOptions)));
+
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Select Icon Material"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(
+                            DialogBody.plainMessage(queryInfo),
+                            DialogBody.plainMessage(Component.text("Page " + (finalPage + 1) + " of " + totalPages + " (Total: " + filtered.size() + " items)"))
+                    ))
+                    .build());
+            builder.type(DialogType.multiAction(buttons, null, 2));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    private void openSearchTextInput(Player player, Home home, boolean isLocked, String category) {
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Search Icon Browser"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Enter search query:"))))
+                    .inputs(List.of(DialogInput.text("query", Component.text("Search Query"))
+                            .initial("")
+                            .maxLength(20)
+                            .build()))
+                    .build());
+
+            ActionButton confirmBtn = ActionButton.create(Component.text("Search", NamedTextColor.GREEN), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        String query = res.getText("query");
+                        runSync(player, () -> {
+                            openIconBrowser(player, home, isLocked, 0, query == null ? "" : query.trim(), category);
+                        });
+                    }, defaultOptions));
+
+            ActionButton cancelBtn = ActionButton.create(Component.text("Cancel", NamedTextColor.RED), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openIconBrowser(player, home, isLocked, 0, "", category);
+                        });
+                    }, defaultOptions));
+
+            builder.type(DialogType.confirmation(confirmBtn, cancelBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    private String getNextCategory(String current) {
+        switch (current.toLowerCase(Locale.ROOT)) {
+            case "all": return "blocks";
+            case "blocks": return "food";
+            case "food": return "tools";
+            case "tools": return "misc";
+            default: return "all";
+        }
+    }
+
+    private List<Material> filterMaterials(String query, String category) {
+        List<Material> results = new ArrayList<>();
+        String lowerQuery = query.toLowerCase(Locale.ROOT);
+        for (Material mat : Material.values()) {
+            if (!mat.isItem() || mat.isAir()) continue;
+            String name = mat.name().toLowerCase(Locale.ROOT);
+            if (!name.contains(lowerQuery)) continue;
+
+            // Filter by category
+            if ("blocks".equals(category) && !mat.isBlock()) continue;
+            if ("food".equals(category) && !mat.isEdible()) continue;
+            if ("tools".equals(category)) {
+                boolean isTool = name.contains("sword") || name.contains("pickaxe") || name.contains("axe")
+                        || name.contains("shovel") || name.contains("hoe") || name.contains("helmet")
+                        || name.contains("chestplate") || name.contains("leggings") || name.contains("boots")
+                        || name.contains("shield") || name.contains("bow") || name.contains("crossbow");
+                if (!isTool) continue;
+            }
+            if ("misc".equals(category)) {
+                boolean isBlock = mat.isBlock();
+                boolean isEdible = mat.isEdible();
+                boolean isTool = name.contains("sword") || name.contains("pickaxe") || name.contains("axe")
+                        || name.contains("shovel") || name.contains("hoe") || name.contains("helmet")
+                        || name.contains("chestplate") || name.contains("leggings") || name.contains("boots")
+                        || name.contains("shield") || name.contains("bow") || name.contains("crossbow");
+                if (isBlock || isEdible || isTool) continue;
+            }
+            results.add(mat);
+        }
+        return results;
+    }
+
+    @Override
+    public void openDeleteConfirmation(Player player, Home home) {
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Confirm Deletion"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(DialogBody.plainMessage(Component.text("Delete Home '" + home.getName() + "'? This action is permanent!"))))
+                    .build());
+
+            ActionButton yesBtn = ActionButton.create(Component.text("YES - Delete", NamedTextColor.GREEN), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            plugin.getHomeManager().deleteHome(player, home.getName());
+                        });
+                    }, defaultOptions));
+
+            ActionButton noBtn = ActionButton.create(Component.text("NO - Keep", NamedTextColor.RED), null, 120,
+                    DialogAction.customClick((res, aud) -> {
+                        runSync(player, () -> {
+                            openHomeManagementMenu(player, home, false);
+                        });
+                    }, defaultOptions));
+
+            builder.type(DialogType.confirmation(yesBtn, noBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+}

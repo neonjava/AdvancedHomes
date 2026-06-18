@@ -1,0 +1,30 @@
+# Advanced Homes Plugin Configuration
+
+# Maximum number of home slots displayed in the UI (cannot exceed 10)
+max-homes: 10
+
+# Delay in seconds before a player is teleported to a home (0 for instant)
+teleport-delay: 3
+
+# If true, any movement will cancel the teleportation countdown
+cancel-on-move: true
+
+# Allow colored names using standard Bukkit color codes (e.g., &a, &b)
+allow-colored-names: true
+
+# Prefer the classic chest Inventory GUI over the new Dialogue API (allows showing actual block textures)
+prefer-inventory-ui: false
+
+# Enable Bedrock Edition player support (via Geyser/Floodgate detection fallback to Inventory GUI)
+enable-bedrock-support: true
+
+# Storage type: 'sqlite' or 'mysql'
+storage-type: sqlite
+
+# MySQL Settings (Only used if storage-type is set to 'mysql')
+mysql:
+  host: localhost
+  port: 3306
+  database: minecraft
+  username: root
+  password: ""

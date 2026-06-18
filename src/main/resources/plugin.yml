@@ -1,0 +1,48 @@
+name: AdvancedHomes
+version: 1.0.0
+main: me.neonjava.advancedhomes.AdvancedHomesPlugin
+api-version: '1.21'
+author: neonjava
+description: A completely custom Homes plugin using Paper 1.21.7+ Dialog API and fallback Inventory GUI.
+folia-supported: true
+
+commands:
+  devhome:
+    description: Opens the homes menu.
+    aliases: [ devhomes ]
+    permission: homes.use
+
+permissions:
+  homes.use:
+    default: true
+    description: Allows opening the homes menu.
+  homes.limit.1:
+    default: true
+    description: Allows using up to 1 home.
+  homes.limit.2:
+    default: false
+    description: Allows using up to 2 homes.
+  homes.limit.3:
+    default: false
+    description: Allows using up to 3 homes.
+  homes.limit.4:
+    default: false
+    description: Allows using up to 4 homes.
+  homes.limit.5:
+    default: false
+    description: Allows using up to 5 homes.
+  homes.limit.6:
+    default: false
+    description: Allows using up to 6 homes.
+  homes.limit.7:
+    default: false
+    description: Allows using up to 7 homes.
+  homes.limit.8:
+    default: false
+    description: Allows using up to 8 homes.
+  homes.limit.9:
+    default: false
+    description: Allows using up to 9 homes.
+  homes.limit.10:
+    default: false
+    description: Allows using up to 10 homes.

@@ -1,0 +1,12 @@
+package me.neonjava.advancedhomes.ui;
+
+import me.neonjava.advancedhomes.model.Home;
+import org.bukkit.entity.Player;
+
+public interface HomesUI {
+    void openMainHomesMenu(Player player);
+    void openCreateHomeFlow(Player player, int slotIndex);
+    void openHomeManagementMenu(Player player, Home home, boolean isLocked);
+    void openIconBrowser(Player player, Home home, boolean isLocked, int page, String searchQuery, String category);
+    void openDeleteConfirmation(Player player, Home home);
+}
