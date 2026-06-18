@@ -129,6 +129,48 @@ public class DialogHomesUI implements HomesUI {
         }
     }
 
+    private Component getRankCriteriaTooltip(int slotIndex) {
+        String rankStr;
+        String criteriaText;
+
+        if (slotIndex >= 1 && slotIndex <= 4) { // Homes 2, 3, 4, 5
+            rankStr = "VIP+";
+            criteriaText = "&d:vip: 𝙑𝙄𝙋+ &7• &e₹79\n" +
+                           "&7:home: 5 Homes\n" +
+                           "&7:shards: 2 Shards every 6 Minutes\n" +
+                           "&7:keys: 3 Mythic Keys\n" +
+                           "&7No Kit Included";
+        } else if (slotIndex == 5) { // Home 6
+            rankStr = "MVP";
+            criteriaText = "&b:mvp: 𝙈𝙑𝙋 &7• &e₹249\n" +
+                           "&7:crates: MVP Kit • 24h Cooldown\n" +
+                           "&7:home: 6 Homes\n" +
+                           "&7:shards: 2 Shards every 6 Minutes\n" +
+                           "&7:keys: 5 Mythic Keys";
+        } else if (slotIndex >= 6 && slotIndex <= 7) { // Homes 7, 8
+            rankStr = "STAR";
+            criteriaText = "&a:star~1: 𝙎𝙏𝘼𝙍 &7• &e₹499\n" +
+                           "&7:crates: STAR Kit • 24h Cooldown\n" +
+                           "&7:home: 8 Homes\n" +
+                           "&7:shards: 3 Shards every 6 Minutes\n" +
+                           "&7:keys: 10 Mythic Keys";
+        } else { // Homes 9, 10
+            rankStr = "GOD";
+            criteriaText = "&6:god: 𝙂𝙊𝘿 &7• &e₹999\n" +
+                           "&7:crates: MVP + STAR Kits\n" +
+                           "&7:spawners: GOD Spawner Kit • 5 Day Cooldown\n" +
+                           "&7:home: 10 Homes\n" +
+                           "&7:shards: 4 Shards every 6 Minutes\n" +
+                           "&7:keys: 12 Mythic Keys";
+        }
+
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(
+            "&cYou need " + rankStr + " rank to access this home slot!\n" +
+            "&eBuy from &b&ndiscord.ninemc.fun&e ticket section\n\n" +
+            criteriaText
+        );
+    }
+
     @Override
     public void openMainHomesMenu(Player player) {
         List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
@@ -145,24 +187,20 @@ public class DialogHomesUI implements HomesUI {
                 if (isLocked) {
                     label = Component.text("🔒 Locked Home", NamedTextColor.RED);
                 } else {
-                    String emoji = getMaterialEmoji(home.getIconMaterial());
-                    label = Component.text(emoji).append(parseColor(home.getName()));
+                    label = parseColor(home.getName());
                 }
 
-                List<Component> tooltipLines = new ArrayList<>();
-                tooltipLines.add(Component.text("Home Name: ").append(parseColor(home.getName())));
+                Component tooltip;
                 if (isLocked) {
-                    tooltipLines.add(Component.text("STATUS: LOCKED (Upgrade rank to access)", NamedTextColor.RED));
+                    tooltip = Component.text("Home Name: ").append(parseColor(home.getName()))
+                            .append(Component.newline())
+                            .append(Component.text("STATUS: LOCKED (Upgrade rank to access)", NamedTextColor.RED))
+                            .append(Component.newline().append(Component.newline()))
+                            .append(getRankCriteriaTooltip(slotIndex));
                 } else {
-                    tooltipLines.add(Component.text("STATUS: ACTIVE", NamedTextColor.GREEN));
-                }
-
-                Component tooltip = Component.empty();
-                for (int j = 0; j < tooltipLines.size(); j++) {
-                    tooltip = tooltip.append(tooltipLines.get(j));
-                    if (j < tooltipLines.size() - 1) {
-                        tooltip = tooltip.append(Component.newline());
-                    }
+                    tooltip = Component.text("Home Name: ").append(parseColor(home.getName()))
+                            .append(Component.newline())
+                            .append(Component.text("STATUS: ACTIVE", NamedTextColor.GREEN));
                 }
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
@@ -183,9 +221,16 @@ public class DialogHomesUI implements HomesUI {
                 buttons.add(ActionButton.create(label, tooltip, 120, action));
             } else {
                 Component label = Component.text("🔒 Locked Slot", NamedTextColor.DARK_GRAY);
-                Component tooltip = Component.text("Locked by Rank. Upgrade to unlock this slot.");
+                Component tooltip = getRankCriteriaTooltip(slotIndex);
                 DialogAction action = DialogAction.customClick((response, audience) -> {
-                    player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
+                    runSync(player, () -> {
+                        player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
+                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the ticket section.");
+                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
+                        String criteria = LegacyComponentSerializer.legacyAmpersand().serialize(getRankCriteriaTooltip(slotIndex));
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', criteria));
+                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
+                    });
                 }, defaultOptions);
                 buttons.add(ActionButton.create(label, tooltip, 120, action));
             }
@@ -277,29 +322,40 @@ public class DialogHomesUI implements HomesUI {
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
         List<ActionButton> buttons = new ArrayList<>();
 
-        if (!isLocked) {
-            // Teleport button
-            buttons.add(ActionButton.create(Component.text("⚡ Teleport to Home"), Component.text("Click to teleport after countdown"), 120,
-                    DialogAction.customClick((res, aud) -> {
-                        runSync(player, () -> {
-                            player.closeInventory();
-                            plugin.getHomeManager().teleportPlayer(player, home);
-                        });
-                    }, defaultOptions)));
+        // Teleport button (added for both unlocked and locked homes!)
+        String teleportLabel = "⚡ Teleport to Home";
+        if (isLocked) {
+            int remaining = home.getRemainingTeleports();
+            teleportLabel += " (" + remaining + " left)";
+        }
+        buttons.add(ActionButton.create(Component.text(teleportLabel), Component.text("Click to teleport"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        if (isLocked) {
+                            int remaining = home.getRemainingTeleports();
+                            if (remaining <= 0) {
+                                player.sendMessage(ChatColor.RED + "This home has expired! You cannot teleport to it anymore.");
+                                player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the ticket section.");
+                                player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + home.getName() + "': X: " + (int)home.getX() + ", Y: " + (int)home.getY() + ", Z: " + (int)home.getZ() + " in world: " + home.getWorldName());
+                                return;
+                            }
+                            
+                            int nextRemaining = remaining - 1;
+                            home.setRemainingTeleports(nextRemaining);
+                            plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), home.getName(), nextRemaining);
+                            player.sendMessage(ChatColor.GOLD + "Warning: You can teleport to this home only " + nextRemaining + " more times before it expires!");
+                        }
+                        plugin.getHomeManager().teleportPlayer(player, home);
+                    });
+                }, defaultOptions)));
 
+        if (!isLocked) {
             // Rename button
             buttons.add(ActionButton.create(Component.text("✏ Rename Home"), Component.text("Change the home name"), 120,
                     DialogAction.customClick((res, aud) -> {
                         runSync(player, () -> {
                             openRenameHomeTextInput(player, home);
-                        });
-                    }, defaultOptions)));
-
-            // Change Icon button
-            buttons.add(ActionButton.create(Component.text("🖼 Change Icon"), Component.text("Select a new icon material"), 120,
-                    DialogAction.customClick((res, aud) -> {
-                        runSync(player, () -> {
-                            openIconBrowser(player, home, false, 0, "", "all");
                         });
                     }, defaultOptions)));
         }
@@ -328,7 +384,7 @@ public class DialogHomesUI implements HomesUI {
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .body(List.of(
-                            DialogBody.plainMessage(Component.text(isLocked ? "⚠️ LOCKED: You can only delete this home." : "Select an action below:"))
+                            DialogBody.plainMessage(Component.text(isLocked ? "⚠️ LOCKED: Limited teleports remaining or delete home." : "Select an action below:"))
                     ))
                     .build());
             builder.type(DialogType.multiAction(buttons, null, 1));
@@ -403,7 +459,7 @@ public class DialogHomesUI implements HomesUI {
                     openHomeManagementMenu(player, home, isLocked);
                 });
             }, defaultOptions);
-            buttons.add(ActionButton.create(Component.text(formatMaterialName(mat.name())), Component.text("Select this material as your home icon"), 120, selectAction));
+            buttons.add(ActionButton.create(Component.translatable(mat.translationKey()), Component.text("Select this material as your home icon"), 120, selectAction));
         }
 
         // Search options button (opens search text input)

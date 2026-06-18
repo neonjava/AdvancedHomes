@@ -16,8 +16,9 @@ public class Home {
     private final float pitch;
     private String iconMaterial;
     private final long creationDate;
+    private int remainingTeleports;
 
-    public Home(UUID playerUuid, String name, String worldName, double x, double y, double z, float yaw, float pitch, String iconMaterial, long creationDate) {
+    public Home(UUID playerUuid, String name, String worldName, double x, double y, double z, float yaw, float pitch, String iconMaterial, long creationDate, int remainingTeleports) {
         this.playerUuid = playerUuid;
         this.name = name;
         this.worldName = worldName;
@@ -28,6 +29,19 @@ public class Home {
         this.pitch = pitch;
         this.iconMaterial = iconMaterial;
         this.creationDate = creationDate;
+        this.remainingTeleports = remainingTeleports;
+    }
+
+    public Home(UUID playerUuid, String name, String worldName, double x, double y, double z, float yaw, float pitch, String iconMaterial, long creationDate) {
+        this(playerUuid, name, worldName, x, y, z, yaw, pitch, iconMaterial, creationDate, 3);
+    }
+
+    public int getRemainingTeleports() {
+        return remainingTeleports;
+    }
+
+    public void setRemainingTeleports(int remainingTeleports) {
+        this.remainingTeleports = remainingTeleports;
     }
 
     public UUID getPlayerUuid() {

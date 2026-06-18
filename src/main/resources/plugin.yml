@@ -10,7 +10,6 @@ commands:
   devhome:
     description: Opens the homes menu.
     aliases: [ devhomes ]
-    permission: homes.use
 
 permissions:
   homes.use:

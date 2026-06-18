@@ -183,7 +183,7 @@ public class HomeManager {
                 scheduledTask.cancel();
                 activeTeleports.remove(player.getUniqueId());
             } else {
-                player.sendMessage(ChatColor.GOLD + "Teleporting in " + secondsLeft[0] + "...");
+                player.sendMessage(ChatColor.GRAY + "Teleporting in " + ChatColor.AQUA + secondsLeft[0] + ChatColor.GRAY + " seconds.");
                 secondsLeft[0]--;
             }
         }, () -> {

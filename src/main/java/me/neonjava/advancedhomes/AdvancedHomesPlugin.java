@@ -77,6 +77,11 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+        if (!player.hasPermission("homes.use")) {
+            player.sendMessage(ChatColor.RED + "You do not have permission to open the homes menu!");
+            return true;
+        }
+
         HomesUI ui = getUI(player);
         if (ui == null) {
             player.sendMessage(ChatColor.RED + "An error occurred while loading the homes interface.");

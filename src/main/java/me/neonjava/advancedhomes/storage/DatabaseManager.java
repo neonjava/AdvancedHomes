@@ -69,6 +69,7 @@ public class DatabaseManager {
                     "pitch FLOAT NOT NULL," +
                     "icon_material VARCHAR(100) NOT NULL," +
                     "creation_date BIGINT NOT NULL," +
+                    "remaining_teleports INT DEFAULT 3," +
                     "UNIQUE(player_uuid, home_name)" +
                     ");";
         } else {
@@ -84,11 +85,21 @@ public class DatabaseManager {
                     "pitch FLOAT NOT NULL," +
                     "icon_material VARCHAR(100) NOT NULL," +
                     "creation_date BIGINT NOT NULL," +
+                    "remaining_teleports INTEGER DEFAULT 3," +
                     "UNIQUE(player_uuid, home_name)" +
                     ");";
         }
         try (Statement statement = connection.createStatement()) {
             statement.execute(query);
+            
+            // Alter existing tables to add remaining_teleports column if it doesn't exist
+            try {
+                if (plugin.getConfigManager().getStorageType().equalsIgnoreCase("mysql")) {
+                    statement.execute("ALTER TABLE player_homes ADD COLUMN remaining_teleports INT DEFAULT 3;");
+                } else {
+                    statement.execute("ALTER TABLE player_homes ADD COLUMN remaining_teleports INTEGER DEFAULT 3;");
+                }
+            } catch (SQLException ignored) {}
         }
     }
 
@@ -138,7 +149,8 @@ public class DatabaseManager {
                             resultSet.getFloat("yaw"),
                             resultSet.getFloat("pitch"),
                             resultSet.getString("icon_material"),
-                            resultSet.getLong("creation_date")
+                            resultSet.getLong("creation_date"),
+                            resultSet.getInt("remaining_teleports")
                     );
                     homes.add(home);
                 }
@@ -150,12 +162,12 @@ public class DatabaseManager {
     }
 
     public synchronized boolean saveHome(Home home) {
-        String query = "INSERT OR REPLACE INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String query = "INSERT OR REPLACE INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date, remaining_teleports) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         if (plugin.getConfigManager().getStorageType().equalsIgnoreCase("mysql")) {
-            query = "INSERT INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " +
-                    "world_name = VALUES(world_name), x = VALUES(x), y = VALUES(y), z = VALUES(z), yaw = VALUES(yaw), pitch = VALUES(pitch), icon_material = VALUES(icon_material)";
+            query = "INSERT INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date, remaining_teleports) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " +
+                    "world_name = VALUES(world_name), x = VALUES(x), y = VALUES(y), z = VALUES(z), yaw = VALUES(yaw), pitch = VALUES(pitch), icon_material = VALUES(icon_material), remaining_teleports = VALUES(remaining_teleports)";
         }
         try (PreparedStatement statement = getConnection().prepareStatement(query)) {
             statement.setString(1, home.getPlayerUuid().toString());
@@ -168,6 +180,7 @@ public class DatabaseManager {
             statement.setFloat(8, home.getPitch());
             statement.setString(9, home.getIconMaterial());
             statement.setLong(10, home.getCreationDate());
+            statement.setInt(11, home.getRemainingTeleports());
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to save home " + home.getName() + " for player " + home.getPlayerUuid(), e);
@@ -209,6 +222,19 @@ public class DatabaseManager {
             return statement.executeUpdate() > 0;
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to update icon for home " + homeName + " for player " + playerUuid, e);
+            return false;
+        }
+    }
+
+    public synchronized boolean updateRemainingTeleports(UUID playerUuid, String homeName, int remaining) {
+        String query = "UPDATE player_homes SET remaining_teleports = ? WHERE player_uuid = ? AND home_name = ?";
+        try (PreparedStatement statement = getConnection().prepareStatement(query)) {
+            statement.setInt(1, remaining);
+            statement.setString(2, playerUuid.toString());
+            statement.setString(3, homeName);
+            return statement.executeUpdate() > 0;
+        } catch (SQLException e) {
+            plugin.getLogger().log(Level.SEVERE, "Failed to update remaining teleports for home " + homeName + " for player " + playerUuid, e);
             return false;
         }
     }
