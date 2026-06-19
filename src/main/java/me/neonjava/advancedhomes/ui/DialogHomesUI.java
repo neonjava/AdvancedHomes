@@ -199,12 +199,13 @@ public class DialogHomesUI implements HomesUI {
                 Component tooltip = getRankCriteriaTooltip(slotIndex);
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageLockedWarning()));
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
-                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
-                        String criteria = LegacyComponentSerializer.legacyAmpersand().serialize(getRankCriteriaTooltip(slotIndex));
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', criteria));
-                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
+                        String teamHomeName;
+                        if (slotIndex < homes.size()) {
+                            teamHomeName = homes.get(slotIndex).getName();
+                        } else {
+                            teamHomeName = "home" + (slotIndex + 1);
+                        }
+                        openTeamHomeDialog(player, teamHomeName, slotIndex);
                     });
                 }, defaultOptions);
                 buttons.add(ActionButton.create(label, tooltip, 120, action));
@@ -623,6 +624,56 @@ public class DialogHomesUI implements HomesUI {
                     }, defaultOptions));
 
             builder.type(DialogType.confirmation(yesBtn, noBtn));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    public void openTeamHomeDialog(Player player, String homeName, int slotIndex) {
+        List<ActionButton> buttons = new ArrayList<>();
+
+        buttons.add(ActionButton.create(Component.text("🚩 Set Team Home", NamedTextColor.GREEN), Component.text("Run /team sethome " + homeName), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team sethome " + homeName);
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("⚡ Team Teleport", NamedTextColor.YELLOW), Component.text("Run /team home " + homeName), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team home " + homeName);
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("❌ Team Delete", NamedTextColor.RED), Component.text("Run /team delhome " + homeName), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team delhome " + homeName);
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("⬅ Back"), Component.text("Return to homes list"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openMainHomesMenu(player);
+                    });
+                }, defaultOptions)));
+
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Team Home Options"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(
+                            DialogBody.plainMessage(Component.text("Manage team home for slot: " + (slotIndex + 1))),
+                            DialogBody.plainMessage(getRankCriteriaTooltip(slotIndex))
+                    ))
+                    .build());
+            builder.type(DialogType.multiAction(buttons, ActionButton.create(Component.text("Close"), null, 100, null), 2));
         });
 
         player.showDialog(dialog);
