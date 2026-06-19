@@ -72,8 +72,8 @@ public class InventoryHomesUI implements HomesUI {
         }
 
         List<String> lore = new ArrayList<>();
-        lore.add("&cYou need " + rankStr + " rank to access this home slot!");
-        lore.add("&eBuy from &b&ndiscord.ninemc.fun&e store section");
+        lore.add(plugin.getConfigManager().getMessageNeedRank().replace("<rank>", rankStr));
+        lore.add(plugin.getConfigManager().getMessageBuyRank());
         return lore;
     }
 
