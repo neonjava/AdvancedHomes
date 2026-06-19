@@ -141,10 +141,9 @@ public class DialogHomesUI implements HomesUI {
             rankStr = "GOD";
         }
 
-        return LegacyComponentSerializer.legacyAmpersand().deserialize(
-            "&cYou need " + rankStr + " rank to access this home slot!\n" +
-            "&eBuy from &b&ndiscord.ninemc.fun&e store section"
-        );
+        String needRankMsg = plugin.getConfigManager().getMessageNeedRank().replace("<rank>", rankStr);
+        String buyRankMsg = plugin.getConfigManager().getMessageBuyRank();
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(needRankMsg + "\n" + buyRankMsg);
     }
 
     @Override
@@ -200,8 +199,8 @@ public class DialogHomesUI implements HomesUI {
                 Component tooltip = getRankCriteriaTooltip(slotIndex);
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
-                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the store section.");
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageLockedWarning()));
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
                         player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
                         String criteria = LegacyComponentSerializer.legacyAmpersand().serialize(getRankCriteriaTooltip(slotIndex));
                         player.sendMessage(ChatColor.translateAlternateColorCodes('&', criteria));
@@ -311,8 +310,8 @@ public class DialogHomesUI implements HomesUI {
                         if (isLocked) {
                             int remaining = home.getRemainingTeleports();
                             if (remaining <= 0) {
-                                player.sendMessage(ChatColor.RED + "This home has expired! You cannot teleport to it anymore.");
-                                player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the store section.");
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageHomeExpired()));
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageNeedRankTeleport()));
                                 player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + home.getName() + "': X: " + (int)home.getX() + ", Y: " + (int)home.getY() + ", Z: " + (int)home.getZ() + " in world: " + home.getWorldName());
                                 return;
                             }
