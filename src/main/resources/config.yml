@@ -28,3 +28,12 @@ mysql:
   database: minecraft
   username: root
   password: ""
+
+# Custom messages configuration
+messages:
+  need-rank: "&cYou need <rank> rank to access this home slot!"
+  buy-rank: "&eBuy from &b&ndiscord.ninemc.fun&e store section"
+  locked-warning: "&cThis home slot is locked by your rank. Upgrade to access more homes!"
+  buy-ranks-warning: "&eRanks can be purchased at &b&ndiscord.ninemc.fun&e in the store section."
+  home-expired: "&cThis home has expired! You cannot teleport to it anymore."
+  need-rank-teleport: "&cYou need a higher rank to access this home! Buy ranks from &b&ndiscord.ninemc.fun&e in the store section."
