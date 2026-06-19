@@ -118,6 +118,17 @@ public class PlayerListener implements Listener {
                     } else if (slot == 14) {
                         invUI.openIconBrowser(player, mHome, false, 0, "", "all");
                     }
+                } else {
+                    if (slot == 11) {
+                        player.closeInventory();
+                        player.performCommand("team sethome " + mHome.getName());
+                    } else if (slot == 12) {
+                        player.closeInventory();
+                        player.performCommand("team home " + mHome.getName());
+                    } else if (slot == 14) {
+                        player.closeInventory();
+                        player.performCommand("team delhome " + mHome.getName());
+                    }
                 }
                 break;
 
