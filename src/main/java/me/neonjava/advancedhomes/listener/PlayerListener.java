@@ -68,7 +68,14 @@ public class PlayerListener implements Listener {
                     } else if (homeIndex < limit) {
                         invUI.openCreateHomeFlow(player, homeIndex);
                     } else {
+                        player.closeInventory();
                         player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
+                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the ticket section.");
+                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
+                        for (String line : invUI.getRankCriteriaLore(homeIndex)) {
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+                        }
+                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
                     }
                 }
                 break;
@@ -88,11 +95,25 @@ public class PlayerListener implements Listener {
                     invUI.openMainHomesMenu(player);
                 } else if (slot == 16) {
                     invUI.openDeleteConfirmation(player, mHome);
+                } else if (slot == 10) {
+                    player.closeInventory();
+                    if (isLocked) {
+                        int remaining = mHome.getRemainingTeleports();
+                        if (remaining <= 0) {
+                            player.sendMessage(ChatColor.RED + "This home has expired! You cannot teleport to it anymore.");
+                            player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the ticket section.");
+                            player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + mHome.getName() + "': X: " + (int)mHome.getX() + ", Y: " + (int)mHome.getY() + ", Z: " + (int)mHome.getZ() + " in world: " + mHome.getWorldName());
+                            return;
+                        }
+
+                        int nextRemaining = remaining - 1;
+                        mHome.setRemainingTeleports(nextRemaining);
+                        plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), mHome.getName(), nextRemaining);
+                        player.sendMessage(ChatColor.GOLD + "Warning: You can teleport to this home only " + nextRemaining + " more times before it expires!");
+                    }
+                    plugin.getHomeManager().teleportPlayer(player, mHome);
                 } else if (!isLocked) {
-                    if (slot == 10) {
-                        player.closeInventory();
-                        plugin.getHomeManager().teleportPlayer(player, mHome);
-                    } else if (slot == 12) {
+                    if (slot == 12) {
                         invUI.openRenameHomeTextInput(player, mHome);
                     } else if (slot == 14) {
                         invUI.openIconBrowser(player, mHome, false, 0, "", "all");

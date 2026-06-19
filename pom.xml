@@ -31,6 +31,13 @@
             <id>jitpack-repo</id>
             <url>https://jitpack.io</url>
         </repository>
+        <repository>
+            <id>mvn-wesjd-net-snapshots</id>
+            <url>https://mvn.wesjd.net/repository/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>

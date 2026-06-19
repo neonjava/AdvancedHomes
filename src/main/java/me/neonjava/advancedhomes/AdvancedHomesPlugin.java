@@ -58,6 +58,12 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
         getCommand("devhome").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
 
+        try {
+            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.listener.PaperChatListener(this), this);
+            getLogger().info("Paper AsyncChatEvent listener registered successfully!");
+        } catch (ClassNotFoundException ignored) {}
+
         getLogger().info("AdvancedHomes Plugin successfully enabled!");
     }
 
@@ -94,18 +100,70 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
 
     public HomesUI getUI(Player player) {
         if (configManager.isPreferInventoryUI()) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Config prefer-inventory-ui is true)");
             return inventoryHomesUI;
         }
 
         if (dialogHomesUI == null) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Dialog API is not supported on this server version)");
             return inventoryHomesUI;
         }
 
         if (configManager.isEnableBedrockSupport() && isBedrockPlayer(player)) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Bedrock player detected)");
             return inventoryHomesUI;
         }
 
+        // Check if we are behind a proxy and lack backend detection plugins (ViaVersion / ProtocolLib)
+        boolean hasDetector = Bukkit.getPluginManager().isPluginEnabled("ViaVersion") || 
+                              Bukkit.getPluginManager().isPluginEnabled("ProtocolLib");
+        boolean isProxied = !Bukkit.getOnlineMode(); // offline mode usually means behind proxy
+        
+        if (isProxied && !hasDetector) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Proxied server without backend ViaVersion/ProtocolLib)");
+            return inventoryHomesUI;
+        }
+
+        // Check protocol version for Dialog API compatibility (requires 1.21.7+, protocol >= 772)
+        int protocol = getPlayerProtocolVersion(player);
+        if (protocol < 772) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Detected protocol: " + protocol + " < 772)");
+            return inventoryHomesUI;
+        }
+
+        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Detected protocol: " + protocol + " >= 772)");
         return dialogHomesUI;
+    }
+
+    private int getPlayerProtocolVersion(Player player) {
+        try {
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
+                Object viaApi = Class.forName("com.viaversion.viaversion.api.Via").getMethod("getAPI").invoke(null);
+                if (viaApi != null) {
+                    Object versionObj = viaApi.getClass().getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
+                    if (versionObj instanceof Number) {
+                        return ((Number) versionObj).intValue();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        try {
+            if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
+                Object protocolManager = Class.forName("com.comphenix.protocol.ProtocolLibrary").getMethod("getProtocolManager").invoke(null);
+                if (protocolManager != null) {
+                    Object versionObj = protocolManager.getClass().getMethod("getProtocolVersion", Player.class).invoke(protocolManager, player);
+                    if (versionObj instanceof Number) {
+                        return ((Number) versionObj).intValue();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        try {
+            if (player instanceof com.destroystokyo.paper.network.NetworkClient) {
+                return ((com.destroystokyo.paper.network.NetworkClient) player).getProtocolVersion();
+            }
+        } catch (Throwable ignored) {}
+        return -1;
     }
 
     private boolean isBedrockPlayer(Player player) {

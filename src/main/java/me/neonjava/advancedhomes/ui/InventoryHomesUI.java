@@ -59,6 +59,50 @@ public class InventoryHomesUI implements HomesUI {
         }
     }
 
+    public List<String> getRankCriteriaLore(int slotIndex) {
+        String rankStr;
+        List<String> criteria = new ArrayList<>();
+
+        if (slotIndex >= 1 && slotIndex <= 4) { // Homes 2, 3, 4, 5
+            rankStr = "VIP+";
+            criteria.add("&d:vip: 𝙑𝙄𝙋+ &7• &e₹79");
+            criteria.add("&7:home: 5 Homes");
+            criteria.add("&7:shards: 2 Shards every 6 Minutes");
+            criteria.add("&7:keys: 3 Mythic Keys");
+            criteria.add("");
+            criteria.add("&7No Kit Included");
+        } else if (slotIndex == 5) { // Home 6
+            rankStr = "MVP";
+            criteria.add("&b<:mvp:1515091151089307688> 𝙈𝙑𝙋 &7• &e₹249");
+            criteria.add("&7:crates: MVP Kit • 24h Cooldown");
+            criteria.add("&7:home: 6 Homes");
+            criteria.add("&7:shards: 2 Shards every 6 Minutes");
+            criteria.add("&7:keys: 5 Mythic Keys");
+        } else if (slotIndex >= 6 && slotIndex <= 7) { // Homes 7, 8
+            rankStr = "STAR";
+            criteria.add("&a<:star:1515091126426665121> 𝙎𝙏𝘼𝙍 &7• &e₹499");
+            criteria.add("&7:crates: STAR Kit • 24h Cooldown");
+            criteria.add("&7:home: 8 Homes");
+            criteria.add("&7:shards: 3 Shards every 6 Minutes");
+            criteria.add("&7:keys: 10 Mythic Keys");
+        } else { // Homes 9, 10
+            rankStr = "GOD";
+            criteria.add("&6:god: 𝙂𝙊𝘿 &7• &e₹999");
+            criteria.add("&7:crates: MVP + STAR Kits");
+            criteria.add("&7:spawners: GOD Spawner Kit • 5 Day Cooldown");
+            criteria.add("&7:home: 10 Homes");
+            criteria.add("&7:shards: 4 Shards every 6 Minutes");
+            criteria.add("&7:keys: 12 Mythic Keys");
+        }
+
+        List<String> lore = new ArrayList<>();
+        lore.add("&cYou need " + rankStr + " rank to access this home slot!");
+        lore.add("&eBuy from &b&ndiscord.ninemc.fun&e ticket section");
+        lore.add("");
+        lore.addAll(criteria);
+        return lore;
+    }
+
     @Override
     public void openMainHomesMenu(Player player) {
         Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MAIN), 27, ChatColor.DARK_BLUE + "Homes Menu");
@@ -82,14 +126,24 @@ public class InventoryHomesUI implements HomesUI {
                 if (iconMat == null) iconMat = Material.RED_BED;
 
                 String displayName = isLocked ? "&c🔒 Locked Home" : "&a" + home.getName();
-                String statusStr = isLocked ? "&cLocked by Rank (Only Delete Allowed)" : "&aActive";
+                String statusStr = isLocked ? "&cLocked by Rank" : "&aActive";
+
+                List<String> loreList = new ArrayList<>();
+                loreList.add("&7Status: " + statusStr);
+                if (isLocked) {
+                    loreList.add("");
+                    loreList.addAll(getRankCriteriaLore(i));
+                    loreList.add("");
+                    loreList.add("&eClick to Manage (Limited Teleport / Delete)");
+                } else {
+                    loreList.add("");
+                    loreList.add("&eClick to Manage Home");
+                }
 
                 ItemStack homeItem = createItem(
                         iconMat,
                         displayName,
-                        "&7Status: " + statusStr,
-                        "",
-                        isLocked ? "&eClick to Delete Home" : "&eClick to Manage Home"
+                        loreList.toArray(new String[0])
                 );
                 inv.setItem(slot, homeItem);
             } else if (i < limit) {
@@ -103,11 +157,11 @@ public class InventoryHomesUI implements HomesUI {
                 inv.setItem(slot, createItem);
             } else {
                 // Locked slot (Locked by Rank)
+                List<String> loreList = getRankCriteriaLore(i);
                 ItemStack lockedItem = createItem(
                         Material.RED_STAINED_GLASS_PANE,
                         "&c🔒 Locked Slot",
-                        "&7Locked by Rank",
-                        "&7Upgrade your rank to unlock!"
+                        loreList.toArray(new String[0])
                 );
                 inv.setItem(slot, lockedItem);
             }
@@ -181,18 +235,36 @@ public class InventoryHomesUI implements HomesUI {
             inv.setItem(12, createItem(Material.NAME_TAG, "&a✏ Rename Home", "&7Change the name of this home"));
             inv.setItem(14, createItem(Material.PAINTING, "&a🖼 Change Icon", "&7Select a new icon material"));
         } else {
-            // Visual warning about lock
-            inv.setItem(11, createItem(
+            int remaining = home.getRemainingTeleports();
+            inv.setItem(10, createItem(Material.COMPASS, "&a⚡ Teleport to Home (" + remaining + " left)", "&7Click to teleport to this home", "&7Limited to 3 total teleports."));
+
+            // Find home index to show rank criteria
+            List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
+            int homeIndex = -1;
+            for (int i = 0; i < homes.size(); i++) {
+                if (homes.get(i).getName().equalsIgnoreCase(home.getName())) {
+                    homeIndex = i;
+                    break;
+                }
+            }
+            List<String> criteriaLore = new ArrayList<>();
+            criteriaLore.add("&7Upgrade your rank to access this home.");
+            criteriaLore.add("&7Only deletion and 3 teleports are allowed.");
+            criteriaLore.add("");
+            if (homeIndex != -1) {
+                criteriaLore.addAll(getRankCriteriaLore(homeIndex));
+            }
+
+            inv.setItem(13, createItem(
                     Material.BARRIER,
                     "&c⚠️ Locked by Rank",
-                    "&7Upgrade your rank to access this home.",
-                    "&7Only deletion is allowed."
+                    criteriaLore.toArray(new String[0])
             ));
         }
 
         // Delete button is always available
         inv.setItem(16, createItem(Material.TNT, "&c❌ Delete Home", "&7Permanently delete this home"));
-        
+
         // Back button
         inv.setItem(22, createItem(Material.ARROW, "&e⬅ Return to Homes Menu"));
 
