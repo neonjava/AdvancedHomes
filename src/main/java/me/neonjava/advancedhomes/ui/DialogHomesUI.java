@@ -131,43 +131,19 @@ public class DialogHomesUI implements HomesUI {
 
     private Component getRankCriteriaTooltip(int slotIndex) {
         String rankStr;
-        String criteriaText;
-
         if (slotIndex >= 1 && slotIndex <= 4) { // Homes 2, 3, 4, 5
             rankStr = "VIP+";
-            criteriaText = "&d:vip: 𝙑𝙄𝙋+ &7• &e₹79\n" +
-                           "&7:home: 5 Homes\n" +
-                           "&7:shards: 2 Shards every 6 Minutes\n" +
-                           "&7:keys: 3 Mythic Keys\n" +
-                           "&7No Kit Included";
         } else if (slotIndex == 5) { // Home 6
             rankStr = "MVP";
-            criteriaText = "&b:mvp: 𝙈𝙑𝙋 &7• &e₹249\n" +
-                           "&7:crates: MVP Kit • 24h Cooldown\n" +
-                           "&7:home: 6 Homes\n" +
-                           "&7:shards: 2 Shards every 6 Minutes\n" +
-                           "&7:keys: 5 Mythic Keys";
         } else if (slotIndex >= 6 && slotIndex <= 7) { // Homes 7, 8
             rankStr = "STAR";
-            criteriaText = "&a:star~1: 𝙎𝙏𝘼𝙍 &7• &e₹499\n" +
-                           "&7:crates: STAR Kit • 24h Cooldown\n" +
-                           "&7:home: 8 Homes\n" +
-                           "&7:shards: 3 Shards every 6 Minutes\n" +
-                           "&7:keys: 10 Mythic Keys";
         } else { // Homes 9, 10
             rankStr = "GOD";
-            criteriaText = "&6:god: 𝙂𝙊𝘿 &7• &e₹999\n" +
-                           "&7:crates: MVP + STAR Kits\n" +
-                           "&7:spawners: GOD Spawner Kit • 5 Day Cooldown\n" +
-                           "&7:home: 10 Homes\n" +
-                           "&7:shards: 4 Shards every 6 Minutes\n" +
-                           "&7:keys: 12 Mythic Keys";
         }
 
         return LegacyComponentSerializer.legacyAmpersand().deserialize(
             "&cYou need " + rankStr + " rank to access this home slot!\n" +
-            "&eBuy from &b&ndiscord.ninemc.fun&e ticket section\n\n" +
-            criteriaText
+            "&eBuy from &b&ndiscord.ninemc.fun&e store section"
         );
     }
 
@@ -225,7 +201,7 @@ public class DialogHomesUI implements HomesUI {
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
                         player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
-                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the ticket section.");
+                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the store section.");
                         player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
                         String criteria = LegacyComponentSerializer.legacyAmpersand().serialize(getRankCriteriaTooltip(slotIndex));
                         player.sendMessage(ChatColor.translateAlternateColorCodes('&', criteria));
@@ -336,7 +312,7 @@ public class DialogHomesUI implements HomesUI {
                             int remaining = home.getRemainingTeleports();
                             if (remaining <= 0) {
                                 player.sendMessage(ChatColor.RED + "This home has expired! You cannot teleport to it anymore.");
-                                player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the ticket section.");
+                                player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the store section.");
                                 player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + home.getName() + "': X: " + (int)home.getX() + ", Y: " + (int)home.getY() + ", Z: " + (int)home.getZ() + " in world: " + home.getWorldName());
                                 return;
                             }

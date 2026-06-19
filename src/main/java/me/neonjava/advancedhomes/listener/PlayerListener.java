@@ -70,7 +70,7 @@ public class PlayerListener implements Listener {
                     } else {
                         player.closeInventory();
                         player.sendMessage(ChatColor.RED + "This home slot is locked by your rank. Upgrade to access more homes!");
-                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the ticket section.");
+                        player.sendMessage(ChatColor.YELLOW + "Ranks can be purchased at " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.YELLOW + " in the store section.");
                         player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
                         for (String line : invUI.getRankCriteriaLore(homeIndex)) {
                             player.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
@@ -101,7 +101,7 @@ public class PlayerListener implements Listener {
                         int remaining = mHome.getRemainingTeleports();
                         if (remaining <= 0) {
                             player.sendMessage(ChatColor.RED + "This home has expired! You cannot teleport to it anymore.");
-                            player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the ticket section.");
+                            player.sendMessage(ChatColor.RED + "You need a higher rank to access this home! Buy ranks from " + ChatColor.AQUA + "discord.ninemc.fun" + ChatColor.RED + " in the store section.");
                             player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + mHome.getName() + "': X: " + (int)mHome.getX() + ", Y: " + (int)mHome.getY() + ", Z: " + (int)mHome.getZ() + " in world: " + mHome.getWorldName());
                             return;
                         }
