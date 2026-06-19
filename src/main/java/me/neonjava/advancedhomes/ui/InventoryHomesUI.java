@@ -200,6 +200,9 @@ public class InventoryHomesUI implements HomesUI {
             int remaining = home.getRemainingTeleports();
             inv.setItem(10, createItem(Material.COMPASS, "&a⚡ Teleport to Home (" + remaining + " left)", "&7Click to teleport to this home", "&7Limited to 3 total teleports."));
 
+            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
+            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
+
             // Find home index to show rank criteria
             List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
             int homeIndex = -1;
@@ -222,6 +225,8 @@ public class InventoryHomesUI implements HomesUI {
                     "&c⚠️ Locked by Rank",
                     criteriaLore.toArray(new String[0])
             ));
+
+            inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
         }
 
         // Delete button is always available
