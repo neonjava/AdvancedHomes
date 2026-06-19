@@ -14,7 +14,7 @@ public class HomesHolder implements InventoryHolder {
     private final int slotIndex;
 
     public enum Type {
-        MAIN, CREATE, MANAGEMENT, ICON_BROWSER, DELETE_CONFIRM
+        MAIN, CREATE, MANAGEMENT, ICON_BROWSER, DELETE_CONFIRM, TEAM_MANAGEMENT
     }
 
     public HomesHolder(Type type) {
@@ -23,6 +23,10 @@ public class HomesHolder implements InventoryHolder {
 
     public HomesHolder(Type type, int slotIndex) {
         this(type, null, false, 0, "", "all", slotIndex);
+    }
+
+    public HomesHolder(Type type, String homeName, int slotIndex) {
+        this(type, null, false, 0, homeName, "all", slotIndex);
     }
 
     public HomesHolder(Type type, Home home, boolean isLocked) {
