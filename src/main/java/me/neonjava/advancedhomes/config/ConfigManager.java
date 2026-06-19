@@ -64,4 +64,28 @@ public class ConfigManager {
     public String getMysqlPassword() {
         return config.getString("mysql.password", "");
     }
+
+    public String getMessageNeedRank() {
+        return config.getString("messages.need-rank", "&cYou need <rank> rank to access this home slot!");
+    }
+
+    public String getMessageBuyRank() {
+        return config.getString("messages.buy-rank", "&eBuy from &b&ndiscord.ninemc.fun&e store section");
+    }
+
+    public String getMessageLockedWarning() {
+        return config.getString("messages.locked-warning", "&cThis home slot is locked by your rank. Upgrade to access more homes!");
+    }
+
+    public String getMessageBuyRanksWarning() {
+        return config.getString("messages.buy-ranks-warning", "&eRanks can be purchased at &b&ndiscord.ninemc.fun&e in the store section.");
+    }
+
+    public String getMessageHomeExpired() {
+        return config.getString("messages.home-expired", "&cThis home has expired! You cannot teleport to it anymore.");
+    }
+
+    public String getMessageNeedRankTeleport() {
+        return config.getString("messages.need-rank-teleport", "&cYou need a higher rank to access this home! Buy ranks from &b&ndiscord.ninemc.fun&e in the store section.");
+    }
 }
