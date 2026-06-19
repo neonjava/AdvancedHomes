@@ -68,14 +68,13 @@ public class PlayerListener implements Listener {
                     } else if (homeIndex < limit) {
                         invUI.openCreateHomeFlow(player, homeIndex);
                     } else {
-                        player.closeInventory();
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageLockedWarning()));
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
-                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
-                        for (String line : invUI.getRankCriteriaLore(homeIndex)) {
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+                        String teamHomeName;
+                        if (homeIndex < homes.size()) {
+                            teamHomeName = homes.get(homeIndex).getName();
+                        } else {
+                            teamHomeName = "home" + (homeIndex + 1);
                         }
-                        player.sendMessage(ChatColor.GRAY + "---------------------------------------------");
+                        invUI.openTeamHomeMenu(player, teamHomeName, homeIndex);
                     }
                 }
                 break;
@@ -187,6 +186,22 @@ public class PlayerListener implements Listener {
                     player.closeInventory();
                 } else if (slot == 15) {
                     invUI.openHomeManagementMenu(player, dHome, holder.isLocked());
+                }
+                break;
+
+            case TEAM_MANAGEMENT:
+                String teamHomeName = holder.getSearchQuery();
+                if (slot == 22) {
+                    invUI.openMainHomesMenu(player);
+                } else if (slot == 11) {
+                    player.closeInventory();
+                    player.performCommand("team sethome " + teamHomeName);
+                } else if (slot == 12) {
+                    player.closeInventory();
+                    player.performCommand("team home " + teamHomeName);
+                } else if (slot == 14) {
+                    player.closeInventory();
+                    player.performCommand("team delhome " + teamHomeName);
                 }
                 break;
         }
