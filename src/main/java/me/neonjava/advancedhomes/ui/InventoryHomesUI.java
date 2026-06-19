@@ -190,32 +190,20 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openCreateHomeTextInput(Player player) {
         player.closeInventory();
-        player.sendMessage("");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage(ChatColor.YELLOW + "Please type the name of your new home in chat.");
-        player.sendMessage(ChatColor.GRAY + "Type " + ChatColor.RED + "cancel" + ChatColor.GRAY + " to abort.");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage("");
-
-        plugin.getChatInputManager().promptPlayer(player, msg -> {
+        AnvilInput.open(player, "Create Home Name", "Home", name -> {
             runSync(player, () -> {
-                if (msg.equalsIgnoreCase("cancel")) {
+                String trimmed = name.trim();
+                if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
                     player.sendMessage(ChatColor.RED + "Creation aborted.");
                     openMainHomesMenu(player);
                     return;
                 }
-                String name = msg.trim();
-                if (name.isEmpty()) {
-                    player.sendMessage(ChatColor.RED + "Home name cannot be empty.");
-                    openCreateHomeTextInput(player);
-                    return;
-                }
-                if (name.length() > 16) {
+                if (trimmed.length() > 16) {
                     player.sendMessage(ChatColor.RED + "Home name is too long! Max length: 16 characters.");
                     openCreateHomeTextInput(player);
                     return;
                 }
-                plugin.getHomeManager().addHome(player, name);
+                plugin.getHomeManager().addHome(player, trimmed);
                 openMainHomesMenu(player);
             });
         });
@@ -273,32 +261,20 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openRenameHomeTextInput(Player player, Home home) {
         player.closeInventory();
-        player.sendMessage("");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage(ChatColor.YELLOW + "Please type the new name for home '" + home.getName() + "' in chat.");
-        player.sendMessage(ChatColor.GRAY + "Type " + ChatColor.RED + "cancel" + ChatColor.GRAY + " to abort.");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage("");
-
-        plugin.getChatInputManager().promptPlayer(player, msg -> {
+        AnvilInput.open(player, "Rename: " + home.getName(), home.getName(), name -> {
             runSync(player, () -> {
-                if (msg.equalsIgnoreCase("cancel")) {
+                String trimmed = name.trim();
+                if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel") || trimmed.equals(home.getName())) {
                     player.sendMessage(ChatColor.RED + "Rename aborted.");
                     openHomeManagementMenu(player, home, false);
                     return;
                 }
-                String name = msg.trim();
-                if (name.isEmpty()) {
-                    player.sendMessage(ChatColor.RED + "Home name cannot be empty.");
-                    openRenameHomeTextInput(player, home);
-                    return;
-                }
-                if (name.length() > 16) {
+                if (trimmed.length() > 16) {
                     player.sendMessage(ChatColor.RED + "Home name is too long! Max length: 16 characters.");
                     openRenameHomeTextInput(player, home);
                     return;
                 }
-                plugin.getHomeManager().renameHome(player, home.getName(), name);
+                plugin.getHomeManager().renameHome(player, home.getName(), trimmed);
                 openMainHomesMenu(player);
             });
         });
@@ -357,20 +333,14 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openIconSearchTextInput(Player player, Home home, boolean isLocked, String category) {
         player.closeInventory();
-        player.sendMessage("");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage(ChatColor.YELLOW + "Please type your search term in chat to filter icons.");
-        player.sendMessage(ChatColor.GRAY + "Type " + ChatColor.RED + "cancel" + ChatColor.GRAY + " to abort.");
-        player.sendMessage(ChatColor.GOLD + "=============================================");
-        player.sendMessage("");
-
-        plugin.getChatInputManager().promptPlayer(player, msg -> {
+        AnvilInput.open(player, "Search Icon", "", search -> {
             runSync(player, () -> {
-                if (msg.equalsIgnoreCase("cancel")) {
+                String trimmed = search.trim();
+                if (trimmed.equalsIgnoreCase("cancel")) {
                     openIconBrowser(player, home, isLocked, 0, "", category);
                     return;
                 }
-                openIconBrowser(player, home, isLocked, 0, msg.trim(), category);
+                openIconBrowser(player, home, isLocked, 0, trimmed, category);
             });
         });
     }
