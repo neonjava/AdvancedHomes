@@ -57,6 +57,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
         // Register Command and Listener
         getCommand("devhome").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.AnvilInput(), this);
 
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
