@@ -125,14 +125,14 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
             return inventoryHomesUI;
         }
 
-        // Check protocol version for Dialog API compatibility (requires 1.21.7+, protocol >= 775)
+        // Check protocol version for Dialog API compatibility (requires 1.21.7+, protocol >= 772)
         int protocol = getPlayerProtocolVersion(player);
-        if (protocol < 775) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Detected protocol: " + protocol + " < 775)");
+        if (protocol < 772) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Detected protocol: " + protocol + " < 772)");
             return inventoryHomesUI;
         }
 
-        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Detected protocol: " + protocol + " >= 775)");
+        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Detected protocol: " + protocol + " >= 772)");
         return dialogHomesUI;
     }
 
