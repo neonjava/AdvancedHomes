@@ -123,15 +123,6 @@ public class PlayerListener implements Listener {
                         invUI.openRenameHomeTextInput(player, mHome);
                     } else if (slot == 14) {
                         invUI.openIconBrowser(player, mHome, false, 0, "", "all");
-                    } else if (slot == 19) {
-                        player.closeInventory();
-                        player.performCommand("team sethome " + mHome.getName());
-                    } else if (slot == 20) {
-                        player.closeInventory();
-                        player.performCommand("team home " + mHome.getName());
-                    } else if (slot == 21) {
-                        player.closeInventory();
-                        player.performCommand("team delhome " + mHome.getName());
                     }
                 } else {
                     if (slot == 11) {

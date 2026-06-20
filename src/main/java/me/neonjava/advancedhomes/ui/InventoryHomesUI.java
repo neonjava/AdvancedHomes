@@ -227,13 +227,8 @@ public class InventoryHomesUI implements HomesUI {
             ));
         }
 
-        // Team home buttons — always shown for every home (slots 11, 12, 14 for locked; reuse 11,15,16 for unlocked)
-        if (!isLocked) {
-            // For unlocked homes: put team home in the bottom row
-            inv.setItem(19, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
-            inv.setItem(20, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
-            inv.setItem(21, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
-        } else {
+        // Team home buttons — only shown for locked/team homes (slots 11, 12, 14)
+        if (isLocked) {
             inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
             inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
             inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
