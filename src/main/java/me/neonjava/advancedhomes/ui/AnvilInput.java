@@ -28,12 +28,16 @@ public class AnvilInput implements Listener {
         private final String initialText;
         private final Consumer<String> callback;
         private final Inventory inventory;
+        private final int originalLevel;
+        private final float originalExp;
 
         public AnvilSession(Player player, String title, String initialText, Consumer<String> callback) {
             this.player = player;
             this.title = title;
             this.initialText = initialText == null ? "" : initialText;
             this.callback = callback;
+            this.originalLevel = player.getLevel();
+            this.originalExp = player.getExp();
             this.inventory = Bukkit.createInventory(player, org.bukkit.event.inventory.InventoryType.ANVIL, Component.text(title));
             
             ItemStack paper = new ItemStack(Material.PAPER);
@@ -46,6 +50,9 @@ public class AnvilInput implements Listener {
         }
 
         public void open() {
+            if (player.getLevel() < 5) {
+                player.setLevel(5);
+            }
             player.openInventory(inventory);
             sessions.put(player.getUniqueId(), this);
         }
@@ -99,8 +106,10 @@ public class AnvilInput implements Listener {
             }
             if (resultText == null) resultText = "";
 
-            sessions.remove(p.getUniqueId());
             p.closeInventory();
+            sessions.remove(p.getUniqueId());
+            p.setLevel(session.originalLevel);
+            p.setExp(session.originalExp);
             
             final String finalResult = resultText;
             session.callback.accept(finalResult);
@@ -111,6 +120,10 @@ public class AnvilInput implements Listener {
     public void onClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player)) return;
         Player p = (Player) event.getPlayer();
-        sessions.remove(p.getUniqueId());
+        AnvilSession session = sessions.remove(p.getUniqueId());
+        if (session != null) {
+            p.setLevel(session.originalLevel);
+            p.setExp(session.originalExp);
+        }
     }
 }
