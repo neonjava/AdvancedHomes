@@ -73,12 +73,6 @@ public class AnvilInput implements Listener {
         if (leftItem == null) return;
 
         ItemStack result = leftItem.clone();
-        ItemMeta meta = result.getItemMeta();
-        if (meta != null) {
-            String text = anvilInv.getRenameText();
-            meta.displayName(Component.text(text != null ? text : ""));
-            result.setItemMeta(meta);
-        }
         event.setResult(result);
         anvilInv.setRepairCost(0);
     }
