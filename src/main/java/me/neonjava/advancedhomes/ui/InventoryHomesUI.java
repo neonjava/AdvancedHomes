@@ -145,7 +145,7 @@ public class InventoryHomesUI implements HomesUI {
         String iconName = plugin.getConfigManager().getTeamHomeIcon();
         Material teamHomeMat = Material.matchMaterial(iconName);
         if (teamHomeMat == null) teamHomeMat = Material.EMERALD_BLOCK;
-        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Click to run /team home"));
+        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Left-Click to run &a/team home", "&7Right-Click/Shift-Click to run &a/team sethome"));
 
         player.openInventory(inv);
     }

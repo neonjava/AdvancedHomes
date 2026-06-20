@@ -78,7 +78,11 @@ public class PlayerListener implements Listener {
                     }
                 } else if (slot == 22) {
                     player.closeInventory();
-                    player.performCommand("team home");
+                    if (event.isRightClick() || event.isShiftClick()) {
+                        player.performCommand("team sethome");
+                    } else {
+                        player.performCommand("team home");
+                    }
                 }
                 break;
 

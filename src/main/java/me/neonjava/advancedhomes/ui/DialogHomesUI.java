@@ -215,7 +215,7 @@ public class DialogHomesUI implements HomesUI {
         // Permanent Team Home button — always visible
         ActionButton teamHomeBtn = ActionButton.create(
                 Component.text("🚩 Team Home", NamedTextColor.AQUA),
-                Component.text("Click to run /team home"),
+                Component.text("Left-Click to run /team home\nRight-Click/Shift-Click to run /team sethome"),
                 120,
                 DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
