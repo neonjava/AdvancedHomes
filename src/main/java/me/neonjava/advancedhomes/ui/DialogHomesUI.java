@@ -226,7 +226,7 @@ public class DialogHomesUI implements HomesUI {
         );
 
         // Position it in 3rd row middle (slot 12 in a 5-column grid)
-        ActionButton spacer = ActionButton.create(Component.text(" "), null, 0, DialogAction.customClick((r, a) -> {}, defaultOptions));
+        ActionButton spacer = ActionButton.create(Component.text(" "), null, 120, DialogAction.customClick((r, a) -> {}, defaultOptions));
         buttons.add(spacer);
         buttons.add(spacer);
         buttons.add(teamHomeBtn);

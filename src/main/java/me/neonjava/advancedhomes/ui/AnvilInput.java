@@ -87,10 +87,12 @@ public class AnvilInput implements Listener {
         event.setCancelled(true);
 
         if (event.getRawSlot() == 2) {
-            AnvilInventory anvilInv = (AnvilInventory) event.getInventory();
-            String resultText = anvilInv.getRenameText();
+            String resultText = null;
+            if (event.getInventory() instanceof AnvilInventory anvilInv) {
+                resultText = anvilInv.getRenameText();
+            }
             if (resultText == null) {
-                ItemStack item = anvilInv.getItem(2);
+                ItemStack item = event.getInventory().getItem(2);
                 if (item != null && item.hasItemMeta()) {
                     resultText = item.getItemMeta().getDisplayName();
                 }
