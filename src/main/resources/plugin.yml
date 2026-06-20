@@ -1,5 +1,5 @@
 name: AdvancedHomes
-version: 1.0.0
+version: 1.0.1
 main: me.neonjava.advancedhomes.AdvancedHomesPlugin
 api-version: '1.21'
 author: neonjava
@@ -10,6 +10,10 @@ commands:
   devhome:
     description: Opens the homes menu.
     aliases: [ devhomes ]
+  home:
+    description: Teleport to a home or open homes menu.
+  homes:
+    description: Opens the homes menu.
 
 permissions:
   homes.use:

@@ -15,7 +15,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import me.neonjava.advancedhomes.model.Home;
 
+import java.util.List;
 import java.util.UUID;
 
 public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
@@ -56,6 +58,8 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
 
         // Register Command and Listener
         getCommand("devhome").setExecutor(this);
+        getCommand("home").setExecutor(this);
+        getCommand("homes").setExecutor(this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.AnvilInput(), this);
 
@@ -89,6 +93,46 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
             return true;
         }
 
+        // If command is /home and args are provided, teleport directly
+        if (command.getName().equalsIgnoreCase("home") && args.length > 0) {
+            String homeName = args[0];
+            List<Home> currentHomes = homeManager.getHomes(player.getUniqueId());
+            Home targetHome = null;
+            int homeIndex = -1;
+            for (int i = 0; i < currentHomes.size(); i++) {
+                if (currentHomes.get(i).getName().equalsIgnoreCase(homeName)) {
+                    targetHome = currentHomes.get(i);
+                    homeIndex = i;
+                    break;
+                }
+            }
+
+            if (targetHome == null) {
+                player.sendMessage(ChatColor.RED + "Home '" + homeName + "' not found.");
+                return true;
+            }
+
+            int limit = homeManager.getPlayerHomeLimit(player);
+            boolean isLocked = homeIndex >= limit;
+            if (isLocked) {
+                int remaining = targetHome.getRemainingTeleports();
+                if (remaining <= 0) {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMessageHomeExpired()));
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', configManager.getMessageNeedRankTeleport()));
+                    player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + targetHome.getName() + "': X: " + (int)targetHome.getX() + ", Y: " + (int)targetHome.getY() + ", Z: " + (int)targetHome.getZ() + " in world: " + targetHome.getWorldName());
+                    return true;
+                }
+
+                int nextRemaining = remaining - 1;
+                targetHome.setRemainingTeleports(nextRemaining);
+                databaseManager.updateRemainingTeleports(player.getUniqueId(), targetHome.getName(), nextRemaining);
+                player.sendMessage(ChatColor.GOLD + "Warning: You can teleport to this home only " + nextRemaining + " more times before it expires!");
+            }
+
+            homeManager.teleportPlayer(player, targetHome);
+            return true;
+        }
+
         HomesUI ui = getUI(player);
         if (ui == null) {
             player.sendMessage(ChatColor.RED + "An error occurred while loading the homes interface.");
@@ -115,34 +159,44 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
             return inventoryHomesUI;
         }
 
-        // ViaBackwards cannot properly translate Dialog API packets for clients < 1.21.7 (protocol < 772).
-        // Those clients get a mangled UI (acacia buttons), so we fall back to Inventory GUI for them.
+        // Only use Dialog GUI if protocol is known and >= 772 (Minecraft 1.21.7+)
         int protocol = getPlayerProtocolVersion(player);
-        if (protocol > 0 && protocol < 772) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Client protocol " + protocol + " < 772, ViaBackwards cannot translate Dialog API)");
-            return inventoryHomesUI;
+        if (protocol >= 772) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Protocol: " + protocol + ")");
+            return dialogHomesUI;
         }
 
-        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Protocol: " + protocol + ")");
-        return dialogHomesUI;
+        getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Protocol: " + protocol + " < 772 or unknown)");
+        return inventoryHomesUI;
     }
 
     private int getPlayerProtocolVersion(Player player) {
-        // ViaVersion is the most reliable source when it is installed
         try {
             if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
                 Object viaApi = Class.forName("com.viaversion.viaversion.api.Via").getMethod("getAPI").invoke(null);
                 if (viaApi != null) {
-                    Object version = viaApi.getClass().getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
-                    if (version instanceof Number n && n.intValue() > 0) return n.intValue();
+                    Class<?> viaApiClass = Class.forName("com.viaversion.viaversion.api.ViaAPI");
+                    Object versionObj = viaApiClass.getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
+                    if (versionObj instanceof Number) {
+                        return ((Number) versionObj).intValue();
+                    }
                 }
             }
         } catch (Throwable ignored) {}
-        // Fallback: Paper NetworkClient
         try {
-            if (player instanceof com.destroystokyo.paper.network.NetworkClient nc) {
-                int v = nc.getProtocolVersion();
-                if (v > 0) return v;
+            if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
+                Object protocolManager = Class.forName("com.comphenix.protocol.ProtocolLibrary").getMethod("getProtocolManager").invoke(null);
+                if (protocolManager != null) {
+                    Object versionObj = protocolManager.getClass().getMethod("getProtocolVersion", Player.class).invoke(protocolManager, player);
+                    if (versionObj instanceof Number) {
+                        return ((Number) versionObj).intValue();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        try {
+            if (player instanceof com.destroystokyo.paper.network.NetworkClient) {
+                return ((com.destroystokyo.paper.network.NetworkClient) player).getProtocolVersion();
             }
         } catch (Throwable ignored) {}
         return -1;
@@ -150,8 +204,11 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
 
     private boolean isBedrockPlayer(Player player) {
         UUID uuid = player.getUniqueId();
+        if (uuid.getMostSignificantBits() == 0) {
+            return true;
+        }
         String name = player.getName();
-        if (name != null && name.startsWith(".")) {
+        if (name != null && (name.startsWith(".") || name.startsWith("*"))) {
             return true;
         }
         try {
