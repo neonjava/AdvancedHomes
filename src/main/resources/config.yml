@@ -15,6 +15,9 @@ allow-colored-names: true
 # Prefer the classic chest Inventory GUI over the new Dialogue API (allows showing actual block textures)
 prefer-inventory-ui: false
 
+# Icon material for the Team Home button in the chest inventory GUI
+team-home-icon: EMERALD_BLOCK
+
 # Enable Bedrock Edition player support (via Geyser/Floodgate detection fallback to Inventory GUI)
 enable-bedrock-support: true
 

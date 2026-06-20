@@ -141,8 +141,11 @@ public class InventoryHomesUI implements HomesUI {
             }
         }
 
-        // Close button at slot 22
-        inv.setItem(22, createItem(Material.BARRIER, "&cClose Menu"));
+        // Team Home button placed in slot 22 (instead of Close barrier button)
+        String iconName = plugin.getConfigManager().getTeamHomeIcon();
+        Material teamHomeMat = Material.matchMaterial(iconName);
+        if (teamHomeMat == null) teamHomeMat = Material.EMERALD_BLOCK;
+        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Click to run /team home"));
 
         player.openInventory(inv);
     }
@@ -200,9 +203,6 @@ public class InventoryHomesUI implements HomesUI {
             int remaining = home.getRemainingTeleports();
             inv.setItem(10, createItem(Material.COMPASS, "&a⚡ Teleport to Home (" + remaining + " left)", "&7Click to teleport to this home", "&7Limited to 3 total teleports."));
 
-            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
-            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
-
             // Find home index to show rank criteria
             List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
             int homeIndex = -1;
@@ -225,7 +225,17 @@ public class InventoryHomesUI implements HomesUI {
                     "&c⚠️ Locked by Rank",
                     criteriaLore.toArray(new String[0])
             ));
+        }
 
+        // Team home buttons — always shown for every home (slots 11, 12, 14 for locked; reuse 11,15,16 for unlocked)
+        if (!isLocked) {
+            // For unlocked homes: put team home in the bottom row
+            inv.setItem(19, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
+            inv.setItem(20, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
+            inv.setItem(21, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
+        } else {
+            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
+            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
             inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
         }
 
@@ -398,5 +408,22 @@ public class InventoryHomesUI implements HomesUI {
         inv.setItem(22, createItem(Material.ARROW, "&e⬅ Return to Homes Menu"));
 
         player.openInventory(inv);
+    }
+
+    /**
+     * Opens an AnvilInput prompting for a home name, then opens the team home action menu.
+     * Always accessible from the main homes menu regardless of how many homes exist.
+     */
+    public void openTeamHomeInputMenu(Player player) {
+        AnvilInput.open(player, "Team Home Name", "home", name -> {
+            runSync(player, () -> {
+                String trimmed = name.trim();
+                if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
+                    openMainHomesMenu(player);
+                    return;
+                }
+                openTeamHomeMenu(player, trimmed, -1);
+            });
+        });
     }
 }

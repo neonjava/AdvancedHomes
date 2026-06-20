@@ -41,6 +41,10 @@ public class ConfigManager {
         return config.getBoolean("prefer-inventory-ui", true);
     }
 
+    public String getTeamHomeIcon() {
+        return config.getString("team-home-icon", "EMERALD_BLOCK");
+    }
+
     public String getStorageType() {
         return config.getString("storage-type", "sqlite");
     }

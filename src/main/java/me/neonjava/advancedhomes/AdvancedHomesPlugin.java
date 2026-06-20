@@ -115,53 +115,34 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
             return inventoryHomesUI;
         }
 
-        // Check if we are behind a proxy and lack backend detection plugins (ViaVersion / ProtocolLib)
-        boolean hasDetector = Bukkit.getPluginManager().isPluginEnabled("ViaVersion") || 
-                              Bukkit.getPluginManager().isPluginEnabled("ProtocolLib");
-        boolean isProxied = !Bukkit.getOnlineMode(); // offline mode usually means behind proxy
-        
-        if (isProxied && !hasDetector) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Proxied server without backend ViaVersion/ProtocolLib)");
-            return inventoryHomesUI;
-        }
-
-        // Check protocol version for Dialog API compatibility (requires 1.21.7+, protocol >= 772)
+        // ViaBackwards cannot properly translate Dialog API packets for clients < 1.21.7 (protocol < 772).
+        // Those clients get a mangled UI (acacia buttons), so we fall back to Inventory GUI for them.
         int protocol = getPlayerProtocolVersion(player);
-        if (protocol < 772) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Detected protocol: " + protocol + " < 772)");
+        if (protocol > 0 && protocol < 772) {
+            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Client protocol " + protocol + " < 772, ViaBackwards cannot translate Dialog API)");
             return inventoryHomesUI;
         }
 
-        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Detected protocol: " + protocol + " >= 772)");
+        getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Protocol: " + protocol + ")");
         return dialogHomesUI;
     }
 
     private int getPlayerProtocolVersion(Player player) {
+        // ViaVersion is the most reliable source when it is installed
         try {
             if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
                 Object viaApi = Class.forName("com.viaversion.viaversion.api.Via").getMethod("getAPI").invoke(null);
                 if (viaApi != null) {
-                    Object versionObj = viaApi.getClass().getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
-                    if (versionObj instanceof Number) {
-                        return ((Number) versionObj).intValue();
-                    }
+                    Object version = viaApi.getClass().getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
+                    if (version instanceof Number n && n.intValue() > 0) return n.intValue();
                 }
             }
         } catch (Throwable ignored) {}
+        // Fallback: Paper NetworkClient
         try {
-            if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-                Object protocolManager = Class.forName("com.comphenix.protocol.ProtocolLibrary").getMethod("getProtocolManager").invoke(null);
-                if (protocolManager != null) {
-                    Object versionObj = protocolManager.getClass().getMethod("getProtocolVersion", Player.class).invoke(protocolManager, player);
-                    if (versionObj instanceof Number) {
-                        return ((Number) versionObj).intValue();
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
-        try {
-            if (player instanceof com.destroystokyo.paper.network.NetworkClient) {
-                return ((com.destroystokyo.paper.network.NetworkClient) player).getProtocolVersion();
+            if (player instanceof com.destroystokyo.paper.network.NetworkClient nc) {
+                int v = nc.getProtocolVersion();
+                if (v > 0) return v;
             }
         } catch (Throwable ignored) {}
         return -1;
