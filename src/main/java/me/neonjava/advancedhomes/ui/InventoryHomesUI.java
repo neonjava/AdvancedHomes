@@ -145,7 +145,7 @@ public class InventoryHomesUI implements HomesUI {
         String iconName = plugin.getConfigManager().getTeamHomeIcon();
         Material teamHomeMat = Material.matchMaterial(iconName);
         if (teamHomeMat == null) teamHomeMat = Material.EMERALD_BLOCK;
-        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Left-Click to run &a/team home", "&7Right-Click/Shift-Click to run &a/team sethome"));
+        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Click to manage team home"));
 
         player.openInventory(inv);
     }
@@ -376,6 +376,10 @@ public class InventoryHomesUI implements HomesUI {
         player.openInventory(inv);
     }
 
+    public void openTeamHomeMenu(Player player) {
+        openTeamHomeMenu(player, "", -1);
+    }
+
     public void openTeamHomeMenu(Player player, String homeName, int slotIndex) {
         Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.TEAM_MANAGEMENT, homeName, slotIndex), 27, ChatColor.DARK_BLUE + "Team Home Options");
 
@@ -384,21 +388,27 @@ public class InventoryHomesUI implements HomesUI {
             inv.setItem(i, border);
         }
 
-        inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + homeName));
-        inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + homeName));
-        inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + homeName));
+        if (slotIndex == -1) {
+            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome"));
+            inv.setItem(13, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home"));
+            inv.setItem(15, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome"));
+        } else {
+            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + homeName));
+            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + homeName));
+            inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + homeName));
 
-        List<String> criteriaLore = new ArrayList<>();
-        criteriaLore.add("&7Upgrade your rank to access this home.");
-        criteriaLore.add("&7Only deletion and 3 teleports are allowed.");
-        criteriaLore.add("");
-        criteriaLore.addAll(getRankCriteriaLore(slotIndex));
+            List<String> criteriaLore = new ArrayList<>();
+            criteriaLore.add("&7Upgrade your rank to access this home.");
+            criteriaLore.add("&7Only deletion and 3 teleports are allowed.");
+            criteriaLore.add("");
+            criteriaLore.addAll(getRankCriteriaLore(slotIndex));
 
-        inv.setItem(13, createItem(
-                Material.BARRIER,
-                "&c⚠️ Locked by Rank",
-                criteriaLore.toArray(new String[0])
-        ));
+            inv.setItem(13, createItem(
+                    Material.BARRIER,
+                    "&c⚠️ Locked by Rank",
+                    criteriaLore.toArray(new String[0])
+            ));
+        }
 
         inv.setItem(22, createItem(Material.ARROW, "&e⬅ Return to Homes Menu"));
 

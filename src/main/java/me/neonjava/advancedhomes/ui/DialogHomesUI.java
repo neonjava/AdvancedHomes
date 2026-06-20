@@ -215,12 +215,11 @@ public class DialogHomesUI implements HomesUI {
         // Permanent Team Home button — always visible
         ActionButton teamHomeBtn = ActionButton.create(
                 Component.text("🚩 Team Home", NamedTextColor.AQUA),
-                Component.text("Left-Click to run /team home\nRight-Click/Shift-Click to run /team sethome"),
+                Component.text("Click to manage team home"),
                 120,
                 DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        player.closeInventory();
-                        player.performCommand("team home");
+                        openTeamHomeDialog(player);
                     });
                 }, defaultOptions)
         );
@@ -744,6 +743,55 @@ public class DialogHomesUI implements HomesUI {
                     .body(List.of(
                             DialogBody.plainMessage(Component.text("Manage team home for slot: " + (slotIndex + 1))),
                             DialogBody.plainMessage(getRankCriteriaTooltip(slotIndex))
+                    ))
+                    .build());
+            builder.type(DialogType.multiAction(buttons, ActionButton.create(Component.text("Close"), null, 100, null), 2));
+        });
+
+        player.showDialog(dialog);
+    }
+
+    public void openTeamHomeDialog(Player player) {
+        List<ActionButton> buttons = new ArrayList<>();
+
+        buttons.add(ActionButton.create(Component.text("🚩 Set Team Home", NamedTextColor.GREEN), Component.text("Run /team sethome"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team sethome");
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("⚡ Team Teleport", NamedTextColor.YELLOW), Component.text("Run /team home"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team home");
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("❌ Team Delete", NamedTextColor.RED), Component.text("Run /team delhome"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        player.closeInventory();
+                        player.performCommand("team delhome");
+                    });
+                }, defaultOptions)));
+
+        buttons.add(ActionButton.create(Component.text("⬅ Back"), Component.text("Return to homes list"), 120,
+                DialogAction.customClick((res, aud) -> {
+                    runSync(player, () -> {
+                        openMainHomesMenu(player);
+                    });
+                }, defaultOptions)));
+
+        Dialog dialog = Dialog.create(factory -> {
+            DialogRegistryEntry.Builder builder = factory.empty();
+            builder.base(DialogBase.builder(Component.text("Team Home Options"))
+                    .canCloseWithEscape(true)
+                    .afterAction(DialogBase.DialogAfterAction.CLOSE)
+                    .body(List.of(
+                            DialogBody.plainMessage(Component.text("Manage team home:"))
                     ))
                     .build());
             builder.type(DialogType.multiAction(buttons, ActionButton.create(Component.text("Close"), null, 100, null), 2));
