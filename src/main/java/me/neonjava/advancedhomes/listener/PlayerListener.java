@@ -219,6 +219,28 @@ public class PlayerListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerCommandPreprocess(org.bukkit.event.player.PlayerCommandPreprocessEvent event) {
+        String message = event.getMessage().trim();
+        String[] parts = message.split("\\s+");
+        if (parts.length == 0) return;
+
+        String cmdName = parts[0].substring(1).toLowerCase(Locale.ROOT);
+
+        if (cmdName.equals("home") || cmdName.equals("homes") || cmdName.equals("devhome") || cmdName.equals("devhomes")) {
+            event.setCancelled(true);
+            Player player = event.getPlayer();
+
+            String[] args = new String[parts.length - 1];
+            System.arraycopy(parts, 1, args, 0, parts.length - 1);
+
+            org.bukkit.command.PluginCommand command = plugin.getCommand(cmdName);
+            if (command != null) {
+                plugin.onCommand(player, command, cmdName, args);
+            }
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
