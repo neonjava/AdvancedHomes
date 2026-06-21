@@ -14,6 +14,10 @@ commands:
     description: Teleport to a home or open homes menu.
   homes:
     description: Opens the homes menu.
+  checkhome:
+    description: Opens the homes menu of another player.
+    permission: homes.admin.checkhome
+    permission-message: You do not have permission to check other player's homes.
 
 permissions:
   homes.use:
@@ -49,3 +53,6 @@ permissions:
   homes.limit.10:
     default: false
     description: Allows using up to 10 homes.
+  homes.admin.checkhome:
+    default: op
+    description: Allows checking another player's homes.

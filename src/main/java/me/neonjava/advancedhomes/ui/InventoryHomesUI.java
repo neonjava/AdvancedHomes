@@ -5,6 +5,7 @@ import me.neonjava.advancedhomes.model.Home;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -148,6 +149,44 @@ public class InventoryHomesUI implements HomesUI {
         inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Click to manage team home"));
 
         player.openInventory(inv);
+    }
+
+    public void openCheckHomesMenu(Player admin, OfflinePlayer target) {
+        Inventory inv = Bukkit.createInventory(new CheckHomesHolder(target), 27, ChatColor.DARK_RED + target.getName() + "'s Homes");
+
+        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 27; i++) {
+            inv.setItem(i, border);
+        }
+
+        List<Home> homes = plugin.getHomeManager().getHomes(target.getUniqueId());
+
+        for (int i = 0; i < 10; i++) {
+            int slot = homeSlots[i];
+            if (i < homes.size()) {
+                Home home = homes.get(i);
+
+                Material iconMat = Material.matchMaterial(home.getIconMaterial());
+                if (iconMat == null) iconMat = Material.RED_BED;
+
+                List<String> loreList = new ArrayList<>();
+                loreList.add("&7World: " + home.getWorldName());
+                loreList.add("&7X: " + (int)home.getX() + " Y: " + (int)home.getY() + " Z: " + (int)home.getZ());
+                loreList.add("");
+                loreList.add("&eClick to teleport to this home");
+
+                ItemStack homeItem = createItem(
+                        iconMat,
+                        "&a" + home.getName(),
+                        loreList.toArray(new String[0])
+                );
+                inv.setItem(slot, homeItem);
+            } else {
+                inv.setItem(slot, createItem(Material.GRAY_STAINED_GLASS_PANE, "&8Empty Slot"));
+            }
+        }
+
+        admin.openInventory(inv);
     }
 
     @Override

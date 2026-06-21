@@ -10,17 +10,21 @@ import me.neonjava.advancedhomes.ui.InventoryHomesUI;
 import me.neonjava.advancedhomes.ui.HomesUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import me.neonjava.advancedhomes.model.Home;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
+public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, TabCompleter {
     private ConfigManager configManager;
     private DatabaseManager databaseManager;
     private HomeManager homeManager;
@@ -58,8 +62,13 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
 
         // Register Command and Listener
         getCommand("devhome").setExecutor(this);
+        getCommand("devhome").setTabCompleter(this);
         getCommand("home").setExecutor(this);
+        getCommand("home").setTabCompleter(this);
         getCommand("homes").setExecutor(this);
+        getCommand("homes").setTabCompleter(this);
+        getCommand("checkhome").setExecutor(this);
+        getCommand("checkhome").setTabCompleter(this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.AnvilInput(), this);
 
@@ -88,6 +97,22 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
         }
 
         Player player = (Player) sender;
+
+        if (command.getName().equalsIgnoreCase("checkhome")) {
+            if (!player.hasPermission("homes.admin.checkhome")) {
+                player.sendMessage(ChatColor.RED + "You do not have permission to check other player's homes!");
+                return true;
+            }
+            if (args.length == 0) {
+                player.sendMessage(ChatColor.RED + "Usage: /checkhome <username>");
+                return true;
+            }
+            String targetName = args[0];
+            OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
+            ((InventoryHomesUI) inventoryHomesUI).openCheckHomesMenu(player, target);
+            return true;
+        }
+
         if (!player.hasPermission("homes.use")) {
             player.sendMessage(ChatColor.RED + "You do not have permission to open the homes menu!");
             return true;
@@ -246,5 +271,38 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor {
 
     public HomesUI getInventoryHomesUI() {
         return inventoryHomesUI;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        if (!(sender instanceof Player)) {
+            return Collections.emptyList();
+        }
+
+        Player player = (Player) sender;
+        if (command.getName().equalsIgnoreCase("home") && args.length == 1) {
+            List<Home> homes = homeManager.getHomes(player.getUniqueId());
+            List<String> suggestions = new ArrayList<>();
+            String input = args[0].toLowerCase();
+            for (Home home : homes) {
+                if (home.getName().toLowerCase().startsWith(input)) {
+                    suggestions.add(home.getName());
+                }
+            }
+            return suggestions;
+        }
+
+        if (command.getName().equalsIgnoreCase("checkhome") && args.length == 1) {
+            List<String> suggestions = new ArrayList<>();
+            String input = args[0].toLowerCase();
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (online.getName().toLowerCase().startsWith(input)) {
+                    suggestions.add(online.getName());
+                }
+            }
+            return suggestions;
+        }
+
+        return Collections.emptyList();
     }
 }

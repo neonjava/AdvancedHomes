@@ -34,10 +34,36 @@ public class PlayerListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        if (!(event.getInventory().getHolder() instanceof HomesHolder)) return;
+        boolean isHomesHolder = event.getInventory().getHolder() instanceof HomesHolder;
+        boolean isCheckHomesHolder = event.getInventory().getHolder() instanceof me.neonjava.advancedhomes.ui.CheckHomesHolder;
+        if (!isHomesHolder && !isCheckHomesHolder) return;
 
         event.setCancelled(true);
         Player player = (Player) event.getWhoClicked();
+
+        if (isCheckHomesHolder) {
+            me.neonjava.advancedhomes.ui.CheckHomesHolder checkHolder = (me.neonjava.advancedhomes.ui.CheckHomesHolder) event.getInventory().getHolder();
+            int slot = event.getRawSlot();
+            // Check if slot is one of the home slots
+            int homeIndex = -1;
+            for (int i = 0; i < homeSlots.length; i++) {
+                if (homeSlots[i] == slot) {
+                    homeIndex = i;
+                    break;
+                }
+            }
+            if (homeIndex != -1) {
+                List<Home> homes = plugin.getHomeManager().getHomes(checkHolder.getTarget().getUniqueId());
+                if (homeIndex < homes.size()) {
+                    Home home = homes.get(homeIndex);
+                    player.closeInventory();
+                    plugin.getHomeManager().teleportPlayer(player, home);
+                    player.sendMessage(ChatColor.GREEN + "Teleporting to " + checkHolder.getTarget().getName() + "'s home: " + home.getName());
+                }
+            }
+            return;
+        }
+
         HomesHolder holder = (HomesHolder) event.getInventory().getHolder();
         int slot = event.getRawSlot();
 
