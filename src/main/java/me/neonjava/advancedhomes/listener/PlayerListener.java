@@ -144,13 +144,13 @@ public class PlayerListener implements Listener {
                 } else {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("team sethome " + mHome.getName());
+                        player.performCommand("teams sethome " + mHome.getName());
                     } else if (slot == 12) {
                         player.closeInventory();
-                        player.performCommand("team home " + mHome.getName());
+                        player.performCommand("teams home " + mHome.getName());
                     } else if (slot == 14) {
                         player.closeInventory();
-                        player.performCommand("team delhome " + mHome.getName());
+                        player.performCommand("teams delhome " + mHome.getName());
                     }
                 }
                 break;
@@ -221,24 +221,24 @@ public class PlayerListener implements Listener {
                 } else if (teamSlotIndex == -1) {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("team sethome");
+                        player.performCommand("teams sethome");
                     } else if (slot == 13) {
                         player.closeInventory();
-                        player.performCommand("team home");
+                        player.performCommand("teams home");
                     } else if (slot == 15) {
                         player.closeInventory();
-                        player.performCommand("team delhome");
+                        player.performCommand("teams delhome");
                     }
                 } else {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("team sethome " + teamHomeName);
+                        player.performCommand("teams sethome " + teamHomeName);
                     } else if (slot == 12) {
                         player.closeInventory();
-                        player.performCommand("team home " + teamHomeName);
+                        player.performCommand("teams home " + teamHomeName);
                     } else if (slot == 14) {
                         player.closeInventory();
-                        player.performCommand("team delhome " + teamHomeName);
+                        player.performCommand("teams delhome " + teamHomeName);
                     }
                 }
                 break;
