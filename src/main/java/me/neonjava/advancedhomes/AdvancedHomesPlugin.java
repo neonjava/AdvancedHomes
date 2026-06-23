@@ -70,7 +70,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
         getCommand("checkhome").setExecutor(this);
         getCommand("checkhome").setTabCompleter(this);
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.AnvilInput(), this);
+        Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.SignInput(this), this);
 
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
@@ -83,6 +83,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
     @Override
     public void onDisable() {
+        me.neonjava.advancedhomes.ui.SignInput.shutdown();
         if (databaseManager != null) {
             databaseManager.close();
         }

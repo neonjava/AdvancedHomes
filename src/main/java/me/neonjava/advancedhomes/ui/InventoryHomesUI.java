@@ -206,7 +206,7 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openCreateHomeTextInput(Player player) {
         player.closeInventory();
-        AnvilInput.open(player, "Create Home Name", "Home", name -> {
+        SignInput.open(player, "Create Home", "Home", name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
@@ -284,7 +284,7 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openRenameHomeTextInput(Player player, Home home) {
         player.closeInventory();
-        AnvilInput.open(player, "Rename: " + home.getName(), home.getName(), name -> {
+        SignInput.open(player, "Rename Home", home.getName(), name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel") || trimmed.equals(home.getName())) {
@@ -356,7 +356,7 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openIconSearchTextInput(Player player, Home home, boolean isLocked, String category) {
         player.closeInventory();
-        AnvilInput.open(player, "Search Icon", "", search -> {
+        SignInput.open(player, "Search Icon", "", search -> {
             runSync(player, () -> {
                 String trimmed = search.trim();
                 if (trimmed.equalsIgnoreCase("cancel")) {
@@ -455,11 +455,11 @@ public class InventoryHomesUI implements HomesUI {
     }
 
     /**
-     * Opens an AnvilInput prompting for a home name, then opens the team home action menu.
+     * Opens a SignInput prompting for a home name, then opens the team home action menu.
      * Always accessible from the main homes menu regardless of how many homes exist.
      */
     public void openTeamHomeInputMenu(Player player) {
-        AnvilInput.open(player, "Team Home Name", "home", name -> {
+        SignInput.open(player, "Team Home", "home", name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
