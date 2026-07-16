@@ -114,24 +114,45 @@ public class DatabaseManager {
     }
 
     private synchronized Connection getConnection() throws SQLException {
+        boolean needsReconnect = false;
+
         if (connection == null || connection.isClosed()) {
+            needsReconnect = true;
+        } else {
+            // Validate the connection is actually alive (handles MySQL wait_timeout + SQLite locks)
+            try (Statement stmt = connection.createStatement()) {
+                stmt.execute("SELECT 1");
+            } catch (SQLException e) {
+                plugin.getLogger().warning("Database connection stale, reconnecting... (" + e.getMessage() + ")");
+                needsReconnect = true;
+                try { connection.close(); } catch (SQLException ignored) {}
+            }
+        }
+
+        if (needsReconnect) {
             if (plugin.getConfigManager().getStorageType().equalsIgnoreCase("mysql")) {
                 try {
                     setupMysql();
+                    plugin.getLogger().info("MySQL connection re-established.");
                 } catch (Exception e) {
-                    throw new SQLException(e);
+                    throw new SQLException("Failed to reconnect to MySQL", e);
                 }
             } else {
                 try {
                     setupSqlite();
+                    plugin.getLogger().info("SQLite connection re-established.");
                 } catch (Exception e) {
-                    throw new SQLException(e);
+                    throw new SQLException("Failed to reconnect to SQLite", e);
                 }
             }
         }
         return connection;
     }
 
+    /**
+     * Loads homes from database. Returns null on failure (so callers can distinguish
+     * "no homes" from "load failed") to prevent caching an empty list over real data.
+     */
     public synchronized List<Home> loadHomes(UUID playerUuid) {
         List<Home> homes = new ArrayList<>();
         String query = "SELECT * FROM player_homes WHERE player_uuid = ?";
@@ -157,6 +178,7 @@ public class DatabaseManager {
             }
         } catch (SQLException e) {
             plugin.getLogger().log(Level.SEVERE, "Failed to load homes for player " + playerUuid, e);
+            return null; // Signal failure — do NOT return empty list
         }
         return homes;
     }
