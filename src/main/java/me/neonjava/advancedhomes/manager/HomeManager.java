@@ -21,20 +21,38 @@ public class HomeManager {
 
     public void loadPlayerHomes(UUID playerUuid) {
         List<Home> loaded = plugin.getDatabaseManager().loadHomes(playerUuid);
+        if (loaded == null) {
+            // Database load failed — do NOT overwrite cache with empty data.
+            // If there's existing cached data, keep it. Otherwise, don't cache anything
+            // so the next getHomes() call will retry the load.
+            plugin.getLogger().warning("Failed to load homes for " + playerUuid + " — keeping existing cache if available.");
+            return;
+        }
         // Sort by creation date: oldest first
         loaded.sort(Comparator.comparingLong(Home::getCreationDate));
         homesCache.put(playerUuid, loaded);
     }
 
     public List<Home> getHomes(UUID playerUuid) {
-        if (!homesCache.containsKey(playerUuid)) {
+        List<Home> cached = homesCache.get(playerUuid);
+        if (cached == null) {
             loadPlayerHomes(playerUuid);
+            cached = homesCache.get(playerUuid);
         }
-        return homesCache.getOrDefault(playerUuid, new ArrayList<>());
+        return cached != null ? cached : new ArrayList<>();
     }
 
     public void invalidateCache(UUID playerUuid) {
         homesCache.remove(playerUuid);
+    }
+
+    /**
+     * Force-refresh a player's homes from the database, replacing the cache.
+     * Called on PlayerJoinEvent to ensure fresh data.
+     */
+    public void refreshPlayerHomes(UUID playerUuid) {
+        homesCache.remove(playerUuid);
+        loadPlayerHomes(playerUuid);
     }
 
     public boolean addHome(Player player, String name) {
@@ -138,7 +156,11 @@ public class HomeManager {
     }
 
     public void teleportPlayer(Player player, Home home) {
-        int delay = plugin.getConfigManager().getTeleportDelay();
+        teleportPlayer(player, home, false);
+    }
+
+    public void teleportPlayer(Player player, Home home, boolean ignoreDelay) {
+        int delay = ignoreDelay ? 0 : plugin.getConfigManager().getTeleportDelay();
         if (delay <= 0) {
             Location loc = home.getLocation();
             if (loc == null) {
