@@ -14,7 +14,9 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
@@ -29,6 +31,19 @@ public class PlayerListener implements Listener {
 
     public PlayerListener(AdvancedHomesPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // Refresh homes from database on login to ensure fresh data
+        // (prevents stale/empty cache from persisting across sessions)
+        plugin.getHomeManager().refreshPlayerHomes(event.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // Clear cached homes on logout to free memory and prevent stale data
+        plugin.getHomeManager().invalidateCache(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
@@ -57,7 +72,7 @@ public class PlayerListener implements Listener {
                 if (homeIndex < homes.size()) {
                     Home home = homes.get(homeIndex);
                     player.closeInventory();
-                    plugin.getHomeManager().teleportPlayer(player, home);
+                    plugin.getHomeManager().teleportPlayer(player, home, true);
                     player.sendMessage(ChatColor.GREEN + "Teleporting to " + checkHolder.getTarget().getName() + "'s home: " + home.getName());
                 }
             }
@@ -144,13 +159,13 @@ public class PlayerListener implements Listener {
                 } else {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("teams sethome " + mHome.getName());
+                        player.performCommand("team sethome " + mHome.getName());
                     } else if (slot == 12) {
                         player.closeInventory();
-                        player.performCommand("teams home " + mHome.getName());
+                        player.performCommand("team home " + mHome.getName());
                     } else if (slot == 14) {
                         player.closeInventory();
-                        player.performCommand("teams delhome " + mHome.getName());
+                        player.performCommand("team delhome " + mHome.getName());
                     }
                 }
                 break;
@@ -221,24 +236,24 @@ public class PlayerListener implements Listener {
                 } else if (teamSlotIndex == -1) {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("teams sethome");
+                        player.performCommand("team sethome");
                     } else if (slot == 13) {
                         player.closeInventory();
-                        player.performCommand("teams home");
+                        player.performCommand("team home");
                     } else if (slot == 15) {
                         player.closeInventory();
-                        player.performCommand("teams delhome");
+                        player.performCommand("team delhome");
                     }
                 } else {
                     if (slot == 11) {
                         player.closeInventory();
-                        player.performCommand("teams sethome " + teamHomeName);
+                        player.performCommand("team sethome " + teamHomeName);
                     } else if (slot == 12) {
                         player.closeInventory();
-                        player.performCommand("teams home " + teamHomeName);
+                        player.performCommand("team home " + teamHomeName);
                     } else if (slot == 14) {
                         player.closeInventory();
-                        player.performCommand("teams delhome " + teamHomeName);
+                        player.performCommand("team delhome " + teamHomeName);
                     }
                 }
                 break;
