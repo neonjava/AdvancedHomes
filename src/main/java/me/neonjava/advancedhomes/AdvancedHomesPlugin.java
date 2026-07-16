@@ -5,7 +5,6 @@ import me.neonjava.advancedhomes.listener.PlayerListener;
 import me.neonjava.advancedhomes.manager.ChatInputManager;
 import me.neonjava.advancedhomes.manager.HomeManager;
 import me.neonjava.advancedhomes.storage.DatabaseManager;
-import me.neonjava.advancedhomes.ui.DialogHomesUI;
 import me.neonjava.advancedhomes.ui.InventoryHomesUI;
 import me.neonjava.advancedhomes.ui.HomesUI;
 import org.bukkit.Bukkit;
@@ -29,7 +28,6 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
     private DatabaseManager databaseManager;
     private HomeManager homeManager;
     private ChatInputManager chatInputManager;
-    private HomesUI dialogHomesUI;
     private HomesUI inventoryHomesUI;
 
     @Override
@@ -46,19 +44,6 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
         // UI instances
         inventoryHomesUI = new InventoryHomesUI(this);
-        
-        boolean dialogueApiAvailable = false;
-        try {
-            Class.forName("io.papermc.paper.dialog.Dialog");
-            dialogueApiAvailable = true;
-        } catch (ClassNotFoundException ignored) {}
-
-        if (dialogueApiAvailable) {
-            dialogHomesUI = new DialogHomesUI(this);
-            getLogger().info("Paper Dialog API detected and enabled!");
-        } else {
-            getLogger().info("Paper Dialog API not found. Defaulting to Inventory UI.");
-        }
 
         // Register Command and Listener
         getCommand("devhome").setExecutor(this);
@@ -170,88 +155,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
     }
 
     public HomesUI getUI(Player player) {
-        if (configManager.isPreferInventoryUI()) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Config prefer-inventory-ui is true)");
-            return inventoryHomesUI;
-        }
-
-        if (dialogHomesUI == null) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Dialog API is not supported on this server version)");
-            return inventoryHomesUI;
-        }
-
-        if (configManager.isEnableBedrockSupport() && isBedrockPlayer(player)) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Bedrock player detected)");
-            return inventoryHomesUI;
-        }
-
-        // Only use Dialog GUI if protocol is known and >= 772 (Minecraft 1.21.7+)
-        int protocol = getPlayerProtocolVersion(player);
-        if (protocol >= 772) {
-            getLogger().info("[UI Choice] Player " + player.getName() + " -> Dialog GUI (Protocol: " + protocol + ")");
-            return dialogHomesUI;
-        }
-
-        getLogger().info("[UI Choice] Player " + player.getName() + " -> Chest GUI (Protocol: " + protocol + " < 772 or unknown)");
         return inventoryHomesUI;
-    }
-
-    private int getPlayerProtocolVersion(Player player) {
-        try {
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
-                Object viaApi = Class.forName("com.viaversion.viaversion.api.Via").getMethod("getAPI").invoke(null);
-                if (viaApi != null) {
-                    Class<?> viaApiClass = Class.forName("com.viaversion.viaversion.api.ViaAPI");
-                    Object versionObj = viaApiClass.getMethod("getPlayerVersion", java.util.UUID.class).invoke(viaApi, player.getUniqueId());
-                    if (versionObj instanceof Number) {
-                        return ((Number) versionObj).intValue();
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
-        try {
-            if (Bukkit.getPluginManager().isPluginEnabled("ProtocolLib")) {
-                Object protocolManager = Class.forName("com.comphenix.protocol.ProtocolLibrary").getMethod("getProtocolManager").invoke(null);
-                if (protocolManager != null) {
-                    Object versionObj = protocolManager.getClass().getMethod("getProtocolVersion", Player.class).invoke(protocolManager, player);
-                    if (versionObj instanceof Number) {
-                        return ((Number) versionObj).intValue();
-                    }
-                }
-            }
-        } catch (Throwable ignored) {}
-        try {
-            if (player instanceof com.destroystokyo.paper.network.NetworkClient) {
-                return ((com.destroystokyo.paper.network.NetworkClient) player).getProtocolVersion();
-            }
-        } catch (Throwable ignored) {}
-        return -1;
-    }
-
-    private boolean isBedrockPlayer(Player player) {
-        UUID uuid = player.getUniqueId();
-        if (uuid.getMostSignificantBits() == 0) {
-            return true;
-        }
-        String name = player.getName();
-        if (name != null && (name.startsWith(".") || name.startsWith("*"))) {
-            return true;
-        }
-        try {
-            if (Bukkit.getPluginManager().isPluginEnabled("Geyser-Spigot")) {
-                if (org.geysermc.geyser.api.GeyserApi.api() != null && org.geysermc.geyser.api.GeyserApi.api().isBedrockPlayer(uuid)) {
-                    return true;
-                }
-            }
-        } catch (Throwable ignored) {}
-        try {
-            if (Bukkit.getPluginManager().isPluginEnabled("Floodgate")) {
-                if (org.geysermc.floodgate.api.FloodgateApi.getInstance() != null && org.geysermc.floodgate.api.FloodgateApi.getInstance().isFloodgatePlayer(uuid)) {
-                    return true;
-                }
-            }
-        } catch (Throwable ignored) {}
-        return false;
     }
 
     public ConfigManager getConfigManager() {
