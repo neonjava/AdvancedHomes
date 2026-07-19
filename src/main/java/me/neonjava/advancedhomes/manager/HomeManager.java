@@ -61,10 +61,17 @@ public class HomeManager {
         
         int limit = getPlayerHomeLimit(player);
         
+        // Check for duplicate home name (case-insensitive)
+        for (Home h : currentHomes) {
+            if (h.getName().equalsIgnoreCase(name)) {
+                player.sendMessage(ChatColor.RED + "A home named '" + name + "' already exists! Choose a different name.");
+                return false;
+            }
+        }
+        
         // Count existing homes. If we have active homes equal to or greater than limit, we can't create more.
-        // Wait, rank downgrade logic says: "Plugin must NOT delete homes. All 10 homes remain stored. Accessible Homes: Player may fully use only first allowed homes. Homes 1-3 allowed: Teleport, Rename, Change Icon, Delete. Homes 4-10: Only Delete."
-        // What if they want to create a new home but already have more homes than their limit?
-        // Usually, if they are already at or above their limit, they cannot create a new home.
+        // Rank downgrade logic: Plugin must NOT delete homes. All 10 homes remain stored.
+        // If they are already at or above their limit, they cannot create a new home.
         if (currentHomes.size() >= limit) {
             player.sendMessage(ChatColor.RED + "You have reached your home limit of " + limit + ". Delete some to create new ones!");
             return false;
@@ -86,9 +93,9 @@ public class HomeManager {
 
         boolean saved = plugin.getDatabaseManager().saveHome(home);
         if (saved) {
-            currentHomes.add(home);
-            // Re-sort just in case
-            currentHomes.sort(Comparator.comparingLong(Home::getCreationDate));
+            // Reload cache from DB to guarantee cache-DB consistency
+            // (prevents ghost entries from INSERT OR REPLACE edge cases)
+            refreshPlayerHomes(uuid);
             player.sendMessage(ChatColor.GREEN + "Home '" + name + "' created successfully!");
             return true;
         }
@@ -100,8 +107,8 @@ public class HomeManager {
         UUID uuid = player.getUniqueId();
         boolean deleted = plugin.getDatabaseManager().deleteHome(uuid, homeName);
         if (deleted) {
-            List<Home> currentHomes = getHomes(uuid);
-            currentHomes.removeIf(h -> h.getName().equalsIgnoreCase(homeName));
+            // Reload cache from DB to guarantee consistency
+            refreshPlayerHomes(uuid);
             player.sendMessage(ChatColor.GREEN + "Home '" + homeName + "' deleted.");
             return true;
         }
@@ -111,15 +118,20 @@ public class HomeManager {
 
     public boolean renameHome(Player player, String oldName, String newName) {
         UUID uuid = player.getUniqueId();
+        
+        // Check if a home with the new name already exists
+        List<Home> currentHomes = getHomes(uuid);
+        for (Home h : currentHomes) {
+            if (h.getName().equalsIgnoreCase(newName)) {
+                player.sendMessage(ChatColor.RED + "A home named '" + newName + "' already exists! Choose a different name.");
+                return false;
+            }
+        }
+        
         boolean renamed = plugin.getDatabaseManager().renameHome(uuid, oldName, newName);
         if (renamed) {
-            List<Home> currentHomes = getHomes(uuid);
-            for (Home h : currentHomes) {
-                if (h.getName().equalsIgnoreCase(oldName)) {
-                    h.setName(newName);
-                    break;
-                }
-            }
+            // Reload cache from DB to guarantee consistency
+            refreshPlayerHomes(uuid);
             player.sendMessage(ChatColor.GREEN + "Home renamed from '" + oldName + "' to '" + newName + "'.");
             return true;
         }
@@ -131,13 +143,8 @@ public class HomeManager {
         UUID uuid = player.getUniqueId();
         boolean updated = plugin.getDatabaseManager().updateIcon(uuid, homeName, material);
         if (updated) {
-            List<Home> currentHomes = getHomes(uuid);
-            for (Home h : currentHomes) {
-                if (h.getName().equalsIgnoreCase(homeName)) {
-                    h.setIconMaterial(material);
-                    break;
-                }
-            }
+            // Reload cache from DB to guarantee consistency
+            refreshPlayerHomes(uuid);
             player.sendMessage(ChatColor.GREEN + "Icon for '" + homeName + "' changed to " + material + ".");
             return true;
         }
