@@ -184,12 +184,13 @@ public class DatabaseManager {
     }
 
     public synchronized boolean saveHome(Home home) {
-        String query = "INSERT OR REPLACE INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date, remaining_teleports) " +
+        // Use plain INSERT — duplicate name checking is handled by HomeManager.addHome()
+        // INSERT OR REPLACE was silently deleting existing rows on name conflicts, causing homes to "disappear"
+        String query = "INSERT INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date, remaining_teleports) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         if (plugin.getConfigManager().getStorageType().equalsIgnoreCase("mysql")) {
             query = "INSERT INTO player_homes (player_uuid, home_name, world_name, x, y, z, yaw, pitch, icon_material, creation_date, remaining_teleports) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE " +
-                    "world_name = VALUES(world_name), x = VALUES(x), y = VALUES(y), z = VALUES(z), yaw = VALUES(yaw), pitch = VALUES(pitch), icon_material = VALUES(icon_material), remaining_teleports = VALUES(remaining_teleports)";
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
         try (PreparedStatement statement = getConnection().prepareStatement(query)) {
             statement.setString(1, home.getPlayerUuid().toString());
