@@ -1,13 +1,13 @@
-package me.neonjava.advancedhomes;
+package me.neonjava.neonhomes;
 
-import me.neonjava.advancedhomes.config.ConfigManager;
-import me.neonjava.advancedhomes.listener.PlayerListener;
-import me.neonjava.advancedhomes.manager.ChatInputManager;
-import me.neonjava.advancedhomes.manager.HomeManager;
-import me.neonjava.advancedhomes.storage.DatabaseManager;
-import me.neonjava.advancedhomes.ui.DialogHomesUI;
-import me.neonjava.advancedhomes.ui.InventoryHomesUI;
-import me.neonjava.advancedhomes.ui.HomesUI;
+import me.neonjava.neonhomes.config.ConfigManager;
+import me.neonjava.neonhomes.listener.PlayerListener;
+import me.neonjava.neonhomes.manager.ChatInputManager;
+import me.neonjava.neonhomes.manager.HomeManager;
+import me.neonjava.neonhomes.storage.DatabaseManager;
+import me.neonjava.neonhomes.ui.DialogHomesUI;
+import me.neonjava.neonhomes.ui.InventoryHomesUI;
+import me.neonjava.neonhomes.ui.HomesUI;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
@@ -17,19 +17,19 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import me.neonjava.advancedhomes.model.Home;
+import me.neonjava.neonhomes.model.Home;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, TabCompleter {
+public class NeonHomesPlugin extends JavaPlugin implements CommandExecutor, TabCompleter {
     private ConfigManager configManager;
     private DatabaseManager databaseManager;
     private HomeManager homeManager;
     private ChatInputManager chatInputManager;
-    private me.neonjava.advancedhomes.util.ItemsDatabase itemsDatabase;
+    private me.neonjava.neonhomes.util.ItemsDatabase itemsDatabase;
     private HomesUI inventoryHomesUI;
     private HomesUI dialogHomesUI;
 
@@ -44,7 +44,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
         homeManager = new HomeManager(this);
         chatInputManager = new ChatInputManager();
-        itemsDatabase = new me.neonjava.advancedhomes.util.ItemsDatabase(this);
+        itemsDatabase = new me.neonjava.neonhomes.util.ItemsDatabase(this);
 
         // UI instances
         inventoryHomesUI = new InventoryHomesUI(this);
@@ -70,17 +70,17 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
             getCommand("neonhomes").setTabCompleter(this);
         }
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
-        Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.SignInput(this), this);
+        Bukkit.getPluginManager().registerEvents(new me.neonjava.neonhomes.ui.SignInput(this), this);
 
         try {
             Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
-            Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.listener.PaperChatListener(this), this);
+            Bukkit.getPluginManager().registerEvents(new me.neonjava.neonhomes.listener.PaperChatListener(this), this);
             getLogger().info("Paper AsyncChatEvent listener registered successfully!");
         } catch (ClassNotFoundException ignored) {}
 
         // Start Telemetry Reporter
         try {
-            new me.neonjava.advancedhomes.telemetry.TelemetryReporter(this).start();
+            new me.neonjava.neonhomes.telemetry.TelemetryReporter(this).start();
             getLogger().info("Telemetry reporter initialized.");
         } catch (Throwable t) {
             getLogger().fine("Telemetry reporter skipped: " + t.getMessage());
@@ -91,7 +91,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
     @Override
     public void onDisable() {
-        me.neonjava.advancedhomes.ui.SignInput.shutdown();
+        me.neonjava.neonhomes.ui.SignInput.shutdown();
         if (databaseManager != null) {
             databaseManager.close();
         }
@@ -256,7 +256,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
         return inventoryHomesUI;
     }
 
-    public me.neonjava.advancedhomes.util.ItemsDatabase getItemsDatabase() {
+    public me.neonjava.neonhomes.util.ItemsDatabase getItemsDatabase() {
         return itemsDatabase;
     }
 

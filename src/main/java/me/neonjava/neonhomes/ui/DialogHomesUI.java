@@ -1,9 +1,9 @@
-package me.neonjava.advancedhomes.ui;
+package me.neonjava.neonhomes.ui;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
-import me.neonjava.advancedhomes.config.ConfigManager;
-import me.neonjava.advancedhomes.model.Home;
-import me.neonjava.advancedhomes.util.UnicodeFont;
+import me.neonjava.neonhomes.NeonHomesPlugin;
+import me.neonjava.neonhomes.config.ConfigManager;
+import me.neonjava.neonhomes.model.Home;
+import me.neonjava.neonhomes.util.UnicodeFont;
 import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.data.dialog.ActionButton;
 import io.papermc.paper.registry.data.dialog.DialogBase;
@@ -26,10 +26,10 @@ import java.util.List;
 import java.util.Locale;
 
 public class DialogHomesUI implements HomesUI {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
     private final ClickCallback.Options defaultOptions;
 
-    public DialogHomesUI(AdvancedHomesPlugin plugin) {
+    public DialogHomesUI(NeonHomesPlugin plugin) {
         this.plugin = plugin;
         this.defaultOptions = ClickCallback.Options.builder()
                 .lifetime(Duration.ofMinutes(10))

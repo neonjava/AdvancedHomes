@@ -1,6 +1,6 @@
-package me.neonjava.advancedhomes.telemetry;
+package me.neonjava.neonhomes.telemetry;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.neonhomes.NeonHomesPlugin;
 import org.bukkit.Bukkit;
 
 import java.io.OutputStream;
@@ -11,11 +11,11 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class TelemetryReporter {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
     private final String serverId;
     private static final String DEFAULT_ENDPOINT = "http://localhost:3030/api/telemetry/ping";
 
-    public TelemetryReporter(AdvancedHomesPlugin plugin) {
+    public TelemetryReporter(NeonHomesPlugin plugin) {
         this.plugin = plugin;
         this.serverId = UUID.nameUUIDFromBytes((Bukkit.getIp() + ":" + Bukkit.getPort() + ":" + Bukkit.getWorldContainer().getAbsolutePath()).getBytes(StandardCharsets.UTF_8)).toString();
     }

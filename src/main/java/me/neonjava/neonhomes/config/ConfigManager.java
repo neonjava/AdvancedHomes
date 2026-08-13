@@ -1,13 +1,13 @@
-package me.neonjava.advancedhomes.config;
+package me.neonjava.neonhomes.config;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.neonhomes.NeonHomesPlugin;
 import org.bukkit.configuration.file.FileConfiguration;
 
 public class ConfigManager {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
     private FileConfiguration config;
 
-    public ConfigManager(AdvancedHomesPlugin plugin) {
+    public ConfigManager(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 

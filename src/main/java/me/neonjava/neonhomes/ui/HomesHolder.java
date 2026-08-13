@@ -1,6 +1,6 @@
-package me.neonjava.advancedhomes.ui;
+package me.neonjava.neonhomes.ui;
 
-import me.neonjava.advancedhomes.model.Home;
+import me.neonjava.neonhomes.model.Home;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 

@@ -1,4 +1,4 @@
-package me.neonjava.advancedhomes.model;
+package me.neonjava.neonhomes.model;
 
 import java.util.UUID;
 import org.bukkit.Bukkit;

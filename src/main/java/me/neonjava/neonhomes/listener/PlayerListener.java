@@ -1,10 +1,10 @@
-package me.neonjava.advancedhomes.listener;
+package me.neonjava.neonhomes.listener;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
-import me.neonjava.advancedhomes.config.ConfigManager;
-import me.neonjava.advancedhomes.model.Home;
-import me.neonjava.advancedhomes.ui.HomesHolder;
-import me.neonjava.advancedhomes.ui.InventoryHomesUI;
+import me.neonjava.neonhomes.NeonHomesPlugin;
+import me.neonjava.neonhomes.config.ConfigManager;
+import me.neonjava.neonhomes.model.Home;
+import me.neonjava.neonhomes.ui.HomesHolder;
+import me.neonjava.neonhomes.ui.InventoryHomesUI;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,9 +23,9 @@ import java.util.Locale;
 import java.util.UUID;
 
 public class PlayerListener implements Listener {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
 
-    public PlayerListener(AdvancedHomesPlugin plugin) {
+    public PlayerListener(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 
@@ -43,14 +43,14 @@ public class PlayerListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
         boolean isHomesHolder = event.getInventory().getHolder() instanceof HomesHolder;
-        boolean isCheckHomesHolder = event.getInventory().getHolder() instanceof me.neonjava.advancedhomes.ui.CheckHomesHolder;
+        boolean isCheckHomesHolder = event.getInventory().getHolder() instanceof me.neonjava.neonhomes.ui.CheckHomesHolder;
         if (!isHomesHolder && !isCheckHomesHolder) return;
 
         event.setCancelled(true);
         Player player = (Player) event.getWhoClicked();
 
         if (isCheckHomesHolder) {
-            me.neonjava.advancedhomes.ui.CheckHomesHolder checkHolder = (me.neonjava.advancedhomes.ui.CheckHomesHolder) event.getInventory().getHolder();
+            me.neonjava.neonhomes.ui.CheckHomesHolder checkHolder = (me.neonjava.neonhomes.ui.CheckHomesHolder) event.getInventory().getHolder();
             int slot = event.getRawSlot();
             if (slot >= 0 && slot < 45) {
                 List<Home> homes = plugin.getHomeManager().getHomes(checkHolder.getTarget().getUniqueId());

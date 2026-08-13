@@ -1,6 +1,6 @@
-package me.neonjava.advancedhomes.listener;
+package me.neonjava.neonhomes.listener;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.neonhomes.NeonHomesPlugin;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -9,9 +9,9 @@ import org.bukkit.event.Listener;
 import io.papermc.paper.event.player.AsyncChatEvent;
 
 public class PaperChatListener implements Listener {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
 
-    public PaperChatListener(AdvancedHomesPlugin plugin) {
+    public PaperChatListener(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 

@@ -1,7 +1,7 @@
-package me.neonjava.advancedhomes.manager;
+package me.neonjava.neonhomes.manager;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
-import me.neonjava.advancedhomes.model.Home;
+import me.neonjava.neonhomes.NeonHomesPlugin;
+import me.neonjava.neonhomes.model.Home;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -11,11 +11,11 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HomeManager {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
     private final Map<UUID, List<Home>> homesCache = new ConcurrentHashMap<>();
     private final Map<UUID, ScheduledTask> activeTeleports = new ConcurrentHashMap<>();
 
-    public HomeManager(AdvancedHomesPlugin plugin) {
+    public HomeManager(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 

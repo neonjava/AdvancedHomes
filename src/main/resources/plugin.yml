@@ -1,6 +1,6 @@
 name: NeonHomes
 version: 1.0.1
-main: me.neonjava.advancedhomes.AdvancedHomesPlugin
+main: me.neonjava.neonhomes.NeonHomesPlugin
 api-version: '1.21'
 author: neonjava
 description: A DonutSMP-inspired Homes plugin using Paper 1.21.7+ Dialog API and fallback Inventory GUI.

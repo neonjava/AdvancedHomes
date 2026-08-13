@@ -1,4 +1,4 @@
-package me.neonjava.advancedhomes.ui;
+package me.neonjava.neonhomes.ui;
 
 import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.Inventory;

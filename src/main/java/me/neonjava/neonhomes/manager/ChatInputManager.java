@@ -1,4 +1,4 @@
-package me.neonjava.advancedhomes.manager;
+package me.neonjava.neonhomes.manager;
 
 import org.bukkit.entity.Player;
 

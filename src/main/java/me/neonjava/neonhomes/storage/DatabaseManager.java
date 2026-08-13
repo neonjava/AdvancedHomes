@@ -1,7 +1,7 @@
-package me.neonjava.advancedhomes.storage;
+package me.neonjava.neonhomes.storage;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
-import me.neonjava.advancedhomes.model.Home;
+import me.neonjava.neonhomes.NeonHomesPlugin;
+import me.neonjava.neonhomes.model.Home;
 
 import java.io.File;
 import java.sql.*;
@@ -11,10 +11,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 
 public class DatabaseManager {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
     private Connection connection;
 
-    public DatabaseManager(AdvancedHomesPlugin plugin) {
+    public DatabaseManager(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 

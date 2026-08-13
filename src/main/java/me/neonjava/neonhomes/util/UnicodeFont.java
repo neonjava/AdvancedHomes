@@ -1,4 +1,4 @@
-package me.neonjava.advancedhomes.util;
+package me.neonjava.neonhomes.util;
 
 public class UnicodeFont {
 

@@ -1,4 +1,4 @@
-package me.neonjava.advancedhomes.util;
+package me.neonjava.neonhomes.util;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;

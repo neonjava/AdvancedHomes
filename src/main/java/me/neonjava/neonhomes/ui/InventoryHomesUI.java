@@ -1,9 +1,9 @@
-package me.neonjava.advancedhomes.ui;
+package me.neonjava.neonhomes.ui;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
-import me.neonjava.advancedhomes.config.ConfigManager;
-import me.neonjava.advancedhomes.model.Home;
-import me.neonjava.advancedhomes.util.UnicodeFont;
+import me.neonjava.neonhomes.NeonHomesPlugin;
+import me.neonjava.neonhomes.config.ConfigManager;
+import me.neonjava.neonhomes.model.Home;
+import me.neonjava.neonhomes.util.UnicodeFont;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,9 +16,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
 
 public class InventoryHomesUI implements HomesUI {
-    private final AdvancedHomesPlugin plugin;
+    private final NeonHomesPlugin plugin;
 
-    public InventoryHomesUI(AdvancedHomesPlugin plugin) {
+    public InventoryHomesUI(NeonHomesPlugin plugin) {
         this.plugin = plugin;
     }
 

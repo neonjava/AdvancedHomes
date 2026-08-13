@@ -1,6 +1,6 @@
-package me.neonjava.advancedhomes.ui;
+package me.neonjava.neonhomes.ui;
 
-import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.neonhomes.NeonHomesPlugin;
 import io.papermc.paper.math.Position;
 import io.papermc.paper.event.packet.UncheckedSignChangeEvent;
 import io.papermc.paper.math.BlockPosition;
@@ -81,7 +81,7 @@ public class SignInput implements Listener {
                     m.invoke(player, loc, Side.FRONT);
                 } catch (Throwable t3) {
                     sessions.remove(player);
-                    ((AdvancedHomesPlugin) plugin).getChatInputManager().promptPlayer(player, callback);
+                    ((NeonHomesPlugin) plugin).getChatInputManager().promptPlayer(player, callback);
                     player.sendMessage(org.bukkit.ChatColor.YELLOW + "Please type your home name in chat:");
                 }
             }
