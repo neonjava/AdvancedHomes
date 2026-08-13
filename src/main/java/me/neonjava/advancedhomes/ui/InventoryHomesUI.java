@@ -172,7 +172,7 @@ public class InventoryHomesUI implements HomesUI {
 
     /**
      * Exact 9-slot action row UI as shown in Image 2:
-     * [Slot 2: Lodestone (Teleport)] [Slot 3: Writable Book (Rename)] [Slot 4: White Bed (Icon)] [Slot 5: Air] [Slot 6: Lava Bucket (Delete)]
+     * [Slot 0: Lodestone (Teleport)] [Slot 1: Writable Book (Rename)] [Slot 2: White Bed (Icon)] [Slot 3: Air] [Slot 4: Lava Bucket (Delete)]
      */
     @Override
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
@@ -180,18 +180,18 @@ public class InventoryHomesUI implements HomesUI {
         Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), 9, title);
 
         if (!isLocked) {
-            inv.setItem(2, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport"), "&f&oClick to teleport"));
-            inv.setItem(3, createItem(Material.WRITABLE_BOOK, "&f" + UnicodeFont.toSmallCaps("Rename"), "&f&oClick to rename"));
-            inv.setItem(4, createItem(Material.WHITE_BED, "&f" + UnicodeFont.toSmallCaps("Icon"), "&f&oClick to select home icon"));
-            inv.setItem(5, createItem(Material.AIR, " "));
-            inv.setItem(6, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
+            inv.setItem(0, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport"), "&f&oClick to teleport"));
+            inv.setItem(1, createItem(Material.WRITABLE_BOOK, "&f" + UnicodeFont.toSmallCaps("Rename"), "&f&oClick to rename"));
+            inv.setItem(2, createItem(Material.WHITE_BED, "&f" + UnicodeFont.toSmallCaps("Icon"), "&f&oClick to select home icon"));
+            inv.setItem(3, createItem(Material.AIR, " "));
+            inv.setItem(4, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
         } else {
             int remaining = home.getRemainingTeleports();
-            inv.setItem(2, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport") + " (" + remaining + " left)", "&f&oClick to teleport"));
+            inv.setItem(0, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport") + " (" + remaining + " left)", "&f&oClick to teleport"));
+            inv.setItem(1, createItem(Material.AIR, " "));
+            inv.setItem(2, createItem(Material.AIR, " "));
             inv.setItem(3, createItem(Material.AIR, " "));
-            inv.setItem(4, createItem(Material.AIR, " "));
-            inv.setItem(5, createItem(Material.AIR, " "));
-            inv.setItem(6, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
+            inv.setItem(4, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
         }
 
         player.openInventory(inv);

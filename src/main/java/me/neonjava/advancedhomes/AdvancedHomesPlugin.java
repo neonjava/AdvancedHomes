@@ -29,6 +29,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
     private DatabaseManager databaseManager;
     private HomeManager homeManager;
     private ChatInputManager chatInputManager;
+    private me.neonjava.advancedhomes.util.ItemsDatabase itemsDatabase;
     private HomesUI inventoryHomesUI;
     private HomesUI dialogHomesUI;
 
@@ -43,6 +44,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
         homeManager = new HomeManager(this);
         chatInputManager = new ChatInputManager();
+        itemsDatabase = new me.neonjava.advancedhomes.util.ItemsDatabase(this);
 
         // UI instances
         inventoryHomesUI = new InventoryHomesUI(this);
@@ -230,6 +232,10 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
 
     public HomesUI getInventoryHomesUI() {
         return inventoryHomesUI;
+    }
+
+    public me.neonjava.advancedhomes.util.ItemsDatabase getItemsDatabase() {
+        return itemsDatabase;
     }
 
     @Override

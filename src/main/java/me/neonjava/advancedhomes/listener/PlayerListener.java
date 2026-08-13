@@ -109,8 +109,8 @@ public class PlayerListener implements Listener {
             case MANAGEMENT:
                 Home mHome = holder.getHome();
                 boolean isLocked = holder.isLocked();
-                if (slot == 2) {
-                    // Teleport (Slot 2)
+                if (slot == 0) {
+                    // Teleport (Slot 0)
                     player.closeInventory();
                     if (isLocked) {
                         int remaining = mHome.getRemainingTeleports();
@@ -124,14 +124,14 @@ public class PlayerListener implements Listener {
                         plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), mHome.getName(), nextRemaining);
                     }
                     plugin.getHomeManager().teleportPlayer(player, mHome);
-                } else if (slot == 3 && !isLocked) {
-                    // Rename (Slot 3)
+                } else if (slot == 1 && !isLocked) {
+                    // Rename (Slot 1)
                     invUI.openRenameHomeTextInput(player, mHome);
-                } else if (slot == 4 && !isLocked) {
-                    // Icon (Slot 4)
+                } else if (slot == 2 && !isLocked) {
+                    // Icon (Slot 2)
                     invUI.openIconBrowser(player, mHome, false, 0, "", "all");
-                } else if (slot == 6) {
-                    // Delete (Slot 6)
+                } else if (slot == 4) {
+                    // Delete (Slot 4)
                     invUI.openDeleteConfirmation(player, mHome);
                 }
                 break;

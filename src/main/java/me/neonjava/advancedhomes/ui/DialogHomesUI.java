@@ -75,7 +75,10 @@ public class DialogHomesUI implements HomesUI {
                 Home home = homes.get(i);
                 boolean isLocked = i >= limit;
 
-                Component label = isLocked ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED) : parseColor(home.getName());
+                String iconIndicator = plugin.getItemsDatabase().getIconIndicator(home.getIconMaterial());
+                Component label = isLocked
+                        ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED)
+                        : Component.text(iconIndicator + " ").append(parseColor(home.getName()));
                 Component tooltip = isLocked ? getLockedTooltip() : Component.text(home.getName() + "\nClick to manage");
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
@@ -323,13 +326,16 @@ public class DialogHomesUI implements HomesUI {
 
         // Add all filtered materials in 4 columns (Image 5 format)
         for (Material mat : filtered) {
+            String iconEmoji = plugin.getItemsDatabase().getIconIndicator(mat);
+            String displayName = UnicodeFont.toSmallCaps(mat.name().replace('_', ' ').toLowerCase(Locale.ROOT));
             DialogAction selectAction = DialogAction.customClick((res, aud) -> {
                 runSync(player, () -> {
                     plugin.getHomeManager().updateIcon(player, home.getName(), mat.name());
                     openHomeManagementMenu(player, home, isLocked);
                 });
             }, defaultOptions);
-            buttons.add(ActionButton.create(Component.translatable(mat.translationKey()), Component.text("Click to select " + mat.name()), 120, selectAction));
+            Component label = Component.text(iconEmoji + " ").append(Component.translatable(mat.translationKey()));
+            buttons.add(ActionButton.create(label, Component.text(displayName + "\nClick to select"), 120, selectAction));
         }
 
         String title = UnicodeFont.toSmallCaps("Search");
