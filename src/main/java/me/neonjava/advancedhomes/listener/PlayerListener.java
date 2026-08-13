@@ -1,6 +1,7 @@
 package me.neonjava.advancedhomes.listener;
 
 import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.advancedhomes.config.ConfigManager;
 import me.neonjava.advancedhomes.model.Home;
 import me.neonjava.advancedhomes.ui.HomesHolder;
 import me.neonjava.advancedhomes.ui.InventoryHomesUI;
@@ -88,7 +89,11 @@ public class PlayerListener implements Listener {
                         } else if (globalIndex < limit) {
                             invUI.openCreateHomeTextInput(player);
                         } else {
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
+                            ConfigManager.RankRequirement req = plugin.getConfigManager().getRankRequirementForSlot(globalIndex);
+                            String warning = plugin.getConfigManager().getMessageBuyRanksWarning()
+                                    .replace("<rank>", req.getRankName())
+                                    .replace("<slots>", String.valueOf(req.getSlots()));
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', warning));
                         }
                     }
                 } else if (slot == 45 && currentPage > 0) {
@@ -114,14 +119,25 @@ public class PlayerListener implements Listener {
                     player.closeInventory();
                     if (isLocked) {
                         int remaining = mHome.getRemainingTeleports();
+                        ConfigManager.RankRequirement req = holder.getSlotIndex() >= 0 
+                                ? plugin.getConfigManager().getRankRequirementForSlot(holder.getSlotIndex())
+                                : new ConfigManager.RankRequirement("VIP", 5);
+
                         if (remaining <= 0) {
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageHomeExpired()));
-                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageNeedRankTeleport()));
+                            String noChancesMsg = plugin.getConfigManager().getMessageHomeNoChances()
+                                    .replace("<rank>", req.getRankName())
+                                    .replace("<slots>", String.valueOf(req.getSlots()));
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', noChancesMsg));
                             return;
                         }
                         int nextRemaining = remaining - 1;
                         mHome.setRemainingTeleports(nextRemaining);
                         plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), mHome.getName(), nextRemaining);
+
+                        String expiredMsg = plugin.getConfigManager().getMessageHomeExpired()
+                                .replace("<remaining>", String.valueOf(nextRemaining))
+                                .replace("<rank>", req.getRankName());
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', expiredMsg));
                     }
                     plugin.getHomeManager().teleportPlayer(player, mHome);
                 } else if (slot == 1 && !isLocked) {

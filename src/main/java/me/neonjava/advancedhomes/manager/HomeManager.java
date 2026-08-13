@@ -164,12 +164,28 @@ public class HomeManager {
     public int getPlayerHomeLimit(Player player) {
         int max = plugin.getConfigManager().getMaxHomes();
         if (player.isOp()) return max;
+
+        int limit = plugin.getConfigManager().getDefaultHomeLimit();
+
+        // Check direct numbered permissions (e.g. homes.limit.50)
         for (int i = max; i >= 1; i--) {
             if (player.hasPermission("homes.limit." + i)) {
-                return i;
+                limit = Math.max(limit, i);
+                break;
             }
         }
-        return 3; // Default fallback for players (matches 3 free homes as per reference screenshots!)
+
+        // Check configured rank permissions (e.g. homes.rank.vip, group.vip)
+        for (Map.Entry<String, Integer> entry : plugin.getConfigManager().getRanks().entrySet()) {
+            String rankName = entry.getKey().toLowerCase(Locale.ROOT);
+            if (player.hasPermission("homes.rank." + rankName) || 
+                player.hasPermission("group." + rankName) || 
+                player.hasPermission("homes.limit." + rankName)) {
+                limit = Math.max(limit, entry.getValue());
+            }
+        }
+
+        return limit;
     }
 
     public void teleportPlayer(Player player, Home home) {
@@ -181,11 +197,13 @@ public class HomeManager {
         if (delay <= 0) {
             Location loc = home.getLocation();
             if (loc == null) {
-                player.sendMessage(ChatColor.RED + "The world for this home is not loaded.");
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageWorldNotLoaded()));
                 return;
             }
             player.teleportAsync(loc);
-            player.sendMessage(ChatColor.GREEN + "Teleported to '" + home.getName() + "'!");
+            String successMsg = plugin.getConfigManager().getMessageTeleportSuccess()
+                    .replace("<home>", home.getName());
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', successMsg));
             return;
         }
 
@@ -204,7 +222,7 @@ public class HomeManager {
             if (plugin.getConfigManager().isCancelOnMove()) {
                 Location currentLoc = player.getLocation();
                 if (startLoc.getWorld() != currentLoc.getWorld() || startLoc.distanceSquared(currentLoc) > 0.1) {
-                    player.sendMessage(ChatColor.RED + "Teleportation cancelled due to movement.");
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageTeleportCancelled()));
                     scheduledTask.cancel();
                     activeTeleports.remove(player.getUniqueId());
                     return;
@@ -214,15 +232,20 @@ public class HomeManager {
             if (secondsLeft[0] <= 0) {
                 Location loc = home.getLocation();
                 if (loc == null) {
-                    player.sendMessage(ChatColor.RED + "The world for this home is not loaded.");
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageWorldNotLoaded()));
                 } else {
                     player.teleportAsync(loc);
-                    player.sendMessage(ChatColor.GREEN + "Teleported to '" + home.getName() + "'!");
+                    String successMsg = plugin.getConfigManager().getMessageTeleportSuccess()
+                            .replace("<home>", home.getName());
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', successMsg));
                 }
                 scheduledTask.cancel();
                 activeTeleports.remove(player.getUniqueId());
             } else {
-                player.sendMessage(ChatColor.GRAY + "Teleporting in " + ChatColor.AQUA + secondsLeft[0] + ChatColor.GRAY + " seconds.");
+                String countdownMsg = plugin.getConfigManager().getMessageTeleportCountdown()
+                        .replace("<home>", home.getName())
+                        .replace("<seconds>", String.valueOf(secondsLeft[0]));
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', countdownMsg));
                 secondsLeft[0]--;
             }
         }, () -> {

@@ -41,7 +41,7 @@ public class HomesHolder implements InventoryHolder {
         this(type, home, isLocked, page, searchQuery, category, -1);
     }
 
-    private HomesHolder(Type type, Home home, boolean isLocked, int page, String searchQuery, String category, int slotIndex) {
+    public HomesHolder(Type type, Home home, boolean isLocked, int page, String searchQuery, String category, int slotIndex) {
         this.type = type;
         this.home = home;
         this.isLocked = isLocked;

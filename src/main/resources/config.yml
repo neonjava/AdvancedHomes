@@ -1,7 +1,13 @@
 # Advanced Homes Plugin Configuration
 
-# Maximum number of home slots displayed in the UI (90 homes)
+# Maximum number of home slots displayed in the UI (e.g. 90)
 max-homes: 90
+
+# Default free home limit for normal players without any rank permission
+default-home-limit: 3
+
+# Number of free teleport chances allowed after a player loses their rank (expired rank)
+expired-rank-teleport-chances: 3
 
 # Delay in seconds before a player is teleported to a home (0 for instant)
 teleport-delay: 3
@@ -12,14 +18,11 @@ cancel-on-move: true
 # Allow colored names using standard Bukkit color codes (e.g., &a, &b)
 allow-colored-names: true
 
-# Prefer the classic chest Inventory GUI over the new Dialogue API (allows showing actual block textures)
-prefer-inventory-ui: false
-
-# Icon material for the Team Home button in the chest inventory GUI
-team-home-icon: EMERALD_BLOCK
-
 # Enable Bedrock Edition player support (via Geyser/Floodgate detection fallback to Inventory GUI)
 enable-bedrock-support: true
+
+# Use Small Caps Unicode typography for titles and buttons in Dialogs and GUIs
+use-unicode-font: true
 
 # Storage type: 'sqlite' or 'mysql'
 storage-type: sqlite
@@ -32,12 +35,30 @@ mysql:
   username: root
   password: ""
 
-# Custom messages configuration
+# Rank tier configuration: maps LuckPerms / Vault rank names to maximum home slot limits.
+# When hovering over locked slots in range (e.g. 4-5), the plugin will display the corresponding required rank name!
+ranks:
+  VIP: 5
+  MVP: 10
+  DONUT: 25
+  DONUT_PLUS: 50
+  DONUT_PLUS_PLUS: 90
+
+# Custom messages configuration (supports color codes like &e, &c, &b, and placeholders)
 messages:
-  need-rank: "&cYou need <rank> rank to access this home slot!"
-  buy-rank: "&ePurchase rank upgrades at &b&nneonjava.in&e store section!"
-  locked-tooltip: "&fVisit &b&nneonjava.in&f for even more home slots"
-  locked-warning: "&cThis home slot is locked by your rank. Visit &b&nneonjava.in&c to upgrade!"
-  buy-ranks-warning: "&eRanks can be purchased at &b&nneonjava.in&e in the store section."
-  home-expired: "&cThis home has expired! You cannot teleport to it anymore."
-  need-rank-teleport: "&cYou need a higher rank to access this home! Visit &b&nneonjava.in&c to unlock."
+  # Shown when hovering over a locked slot: <rank>, <slots>, <store> placeholders
+  locked-tooltip: "&cYou need &e<rank> &crank to unlock this slot!\n&7Purchase at &b&nneonjava.in"
+  
+  # Message sent in chat when a player clicks a locked slot
+  buy-ranks-warning: "&cThis home slot requires &e<rank> &crank (&e<slots> &chomes). Purchase at &b&nneonjava.in&c!"
+  
+  # Countdown messages for teleportation
+  teleport-countdown: "&7Teleporting to &f<home> &7in &b<seconds> &7seconds. Do not move!"
+  teleport-success: "&aTeleported to &f<home>&a!"
+  teleport-cancelled: "&cTeleportation cancelled due to movement."
+  world-not-loaded: "&cThe world for this home is not loaded."
+  
+  # Messages for expired/lost rank chances
+  home-expired: "&cYour rank has expired! You have &e<remaining> &cchances left to teleport to this home."
+  home-no-chances: "&cThis home is locked! You have used all grace teleports. Re-purchase &e<rank> &crank at &b&nneonjava.in &cto unlock."
+  need-rank-teleport: "&cYou need &e<rank> &crank to access this home! Visit &b&nneonjava.in &cto unlock."

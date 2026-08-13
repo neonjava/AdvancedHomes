@@ -69,6 +69,75 @@ public class ConfigManager {
         return config.getString("mysql.password", "");
     }
 
+    public int getDefaultHomeLimit() {
+        return config.getInt("default-home-limit", 3);
+    }
+
+    public int getExpiredRankTeleportChances() {
+        return config.getInt("expired-rank-teleport-chances", 3);
+    }
+
+    public boolean isUseUnicodeFont() {
+        return config.getBoolean("use-unicode-font", true);
+    }
+
+    /**
+     * Map of Rank Name -> Maximum Home Slots (e.g. VIP -> 5, MVP -> 10)
+     */
+    public java.util.Map<String, Integer> getRanks() {
+        java.util.Map<String, Integer> ranks = new java.util.LinkedHashMap<>();
+        if (config.isConfigurationSection("ranks")) {
+            for (String key : config.getConfigurationSection("ranks").getKeys(false)) {
+                ranks.put(key, config.getInt("ranks." + key, 5));
+            }
+        }
+        return ranks;
+    }
+
+    /**
+     * Returns the required rank name and limit for a given slot index (0-indexed)
+     */
+    public RankRequirement getRankRequirementForSlot(int slotIndex) {
+        int slotNumber = slotIndex + 1;
+        java.util.Map<String, Integer> ranks = getRanks();
+        if (ranks.isEmpty()) {
+            return new RankRequirement("VIP", 5);
+        }
+
+        for (java.util.Map.Entry<String, Integer> entry : ranks.entrySet()) {
+            if (slotNumber <= entry.getValue()) {
+                return new RankRequirement(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // Return highest rank
+        String lastRank = "VIP";
+        int lastMax = 90;
+        for (java.util.Map.Entry<String, Integer> entry : ranks.entrySet()) {
+            lastRank = entry.getKey();
+            lastMax = entry.getValue();
+        }
+        return new RankRequirement(lastRank, lastMax);
+    }
+
+    public static class RankRequirement {
+        private final String rankName;
+        private final int slots;
+
+        public RankRequirement(String rankName, int slots) {
+            this.rankName = rankName;
+            this.slots = slots;
+        }
+
+        public String getRankName() {
+            return rankName;
+        }
+
+        public int getSlots() {
+            return slots;
+        }
+    }
+
     public String getMessageNeedRank() {
         return config.getString("messages.need-rank", "&cYou need <rank> rank to access this home slot!");
     }
@@ -78,22 +147,38 @@ public class ConfigManager {
     }
 
     public String getMessageLockedTooltip() {
-        return config.getString("messages.locked-tooltip", "&fVisit &b&nneonjava.in&f for even more home slots");
-    }
-
-    public String getMessageLockedWarning() {
-        return config.getString("messages.locked-warning", "&cThis home slot is locked by your rank. Visit &b&nneonjava.in&c to upgrade!");
+        return config.getString("messages.locked-tooltip", "&cYou need &e<rank> &crank to unlock this slot!\n&7Purchase at &b&nneonjava.in");
     }
 
     public String getMessageBuyRanksWarning() {
-        return config.getString("messages.buy-ranks-warning", "&eRanks can be purchased at &b&nneonjava.in&e in the store section.");
+        return config.getString("messages.buy-ranks-warning", "&cThis home slot requires &e<rank> &crank (&e<slots> &chomes). Purchase at &b&nneonjava.in&c!");
+    }
+
+    public String getMessageTeleportCountdown() {
+        return config.getString("messages.teleport-countdown", "&7Teleporting to &f<home> &7in &b<seconds> &7seconds. Do not move!");
+    }
+
+    public String getMessageTeleportSuccess() {
+        return config.getString("messages.teleport-success", "&aTeleported to &f<home>&a!");
+    }
+
+    public String getMessageTeleportCancelled() {
+        return config.getString("messages.teleport-cancelled", "&cTeleportation cancelled due to movement.");
+    }
+
+    public String getMessageWorldNotLoaded() {
+        return config.getString("messages.world-not-loaded", "&cThe world for this home is not loaded.");
     }
 
     public String getMessageHomeExpired() {
-        return config.getString("messages.home-expired", "&cThis home has expired! You cannot teleport to it anymore.");
+        return config.getString("messages.home-expired", "&cYour rank has expired! You have &e<remaining> &cchances left to teleport to this home.");
+    }
+
+    public String getMessageHomeNoChances() {
+        return config.getString("messages.home-no-chances", "&cThis home is locked! You have used all grace teleports. Re-purchase &e<rank> &crank at &b&nneonjava.in &cto unlock.");
     }
 
     public String getMessageNeedRankTeleport() {
-        return config.getString("messages.need-rank-teleport", "&cYou need a higher rank to access this home! Visit &b&nneonjava.in&c to unlock.");
+        return config.getString("messages.need-rank-teleport", "&cYou need &e<rank> &crank to access this home! Visit &b&nneonjava.in &cto unlock.");
     }
 }

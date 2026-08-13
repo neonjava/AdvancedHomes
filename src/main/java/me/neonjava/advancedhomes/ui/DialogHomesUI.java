@@ -1,6 +1,7 @@
 package me.neonjava.advancedhomes.ui;
 
 import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.advancedhomes.config.ConfigManager;
 import me.neonjava.advancedhomes.model.Home;
 import me.neonjava.advancedhomes.util.UnicodeFont;
 import io.papermc.paper.dialog.Dialog;
@@ -48,8 +49,11 @@ public class DialogHomesUI implements HomesUI {
         }
     }
 
-    private Component getLockedTooltip() {
-        String msg = plugin.getConfigManager().getMessageLockedTooltip();
+    private Component getLockedTooltip(int slotIndex) {
+        ConfigManager.RankRequirement req = plugin.getConfigManager().getRankRequirementForSlot(slotIndex);
+        String msg = plugin.getConfigManager().getMessageLockedTooltip()
+                .replace("<rank>", req.getRankName())
+                .replace("<slots>", String.valueOf(req.getSlots()));
         return LegacyComponentSerializer.legacyAmpersand().deserialize(msg);
     }
 
@@ -60,7 +64,7 @@ public class DialogHomesUI implements HomesUI {
 
     /**
      * Paper Dialog Main Homes selection menu:
-     * Buttons arranged in 6 columns, 1 row: [Home 1] [Home 2] [Home 3] [Home 4] [Home 5] [Locked]
+     * Buttons arranged in 6 columns: [Home 1] [Home 2] [Home 3] [Home 4] [Home 5] [Locked]
      */
     @Override
     public void openMainHomesMenu(Player player, int page) {
@@ -71,6 +75,7 @@ public class DialogHomesUI implements HomesUI {
         List<ActionButton> buttons = new ArrayList<>();
 
         for (int i = 0; i < maxHomes; i++) {
+            final int slotIndex = i;
             if (i < homes.size()) {
                 Home home = homes.get(i);
                 boolean isLocked = i >= limit;
@@ -78,11 +83,11 @@ public class DialogHomesUI implements HomesUI {
                 Component label = isLocked
                         ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED)
                         : parseColor(home.getName());
-                Component tooltip = isLocked ? getLockedTooltip() : Component.text(home.getName() + "\nClick to manage");
+                Component tooltip = isLocked ? getLockedTooltip(slotIndex) : Component.text(home.getName() + "\nClick to manage");
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        openHomeManagementMenu(player, home, isLocked);
+                        openHomeManagementMenu(player, home, isLocked, slotIndex);
                     });
                 }, defaultOptions);
 
@@ -98,10 +103,14 @@ public class DialogHomesUI implements HomesUI {
                 buttons.add(ActionButton.create(label, tooltip, 75, action));
             } else {
                 Component label = Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED);
-                Component tooltip = getLockedTooltip();
+                Component tooltip = getLockedTooltip(slotIndex);
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
+                        ConfigManager.RankRequirement req = plugin.getConfigManager().getRankRequirementForSlot(slotIndex);
+                        String warning = plugin.getConfigManager().getMessageBuyRanksWarning()
+                                .replace("<rank>", req.getRankName())
+                                .replace("<slots>", String.valueOf(req.getSlots()));
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', warning));
                     });
                 }, defaultOptions);
                 buttons.add(ActionButton.create(label, tooltip, 75, action));
@@ -176,6 +185,10 @@ public class DialogHomesUI implements HomesUI {
      */
     @Override
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
+        openHomeManagementMenu(player, home, isLocked, -1);
+    }
+
+    public void openHomeManagementMenu(Player player, Home home, boolean isLocked, int slotIndex) {
         List<ActionButton> buttons = new ArrayList<>();
 
         String teleportLabel = UnicodeFont.toSmallCaps("Teleport");
@@ -189,14 +202,25 @@ public class DialogHomesUI implements HomesUI {
                         player.closeInventory();
                         if (isLocked) {
                             int remaining = home.getRemainingTeleports();
+                            ConfigManager.RankRequirement req = slotIndex >= 0 
+                                    ? plugin.getConfigManager().getRankRequirementForSlot(slotIndex)
+                                    : new ConfigManager.RankRequirement("VIP", 5);
+
                             if (remaining <= 0) {
-                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageHomeExpired()));
-                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageNeedRankTeleport()));
+                                String noChancesMsg = plugin.getConfigManager().getMessageHomeNoChances()
+                                        .replace("<rank>", req.getRankName())
+                                        .replace("<slots>", String.valueOf(req.getSlots()));
+                                player.sendMessage(ChatColor.translateAlternateColorCodes('&', noChancesMsg));
                                 return;
                             }
                             int nextRemaining = remaining - 1;
                             home.setRemainingTeleports(nextRemaining);
                             plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), home.getName(), nextRemaining);
+
+                            String expiredMsg = plugin.getConfigManager().getMessageHomeExpired()
+                                    .replace("<remaining>", String.valueOf(nextRemaining))
+                                    .replace("<rank>", req.getRankName());
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', expiredMsg));
                         }
                         plugin.getHomeManager().teleportPlayer(player, home);
                     });

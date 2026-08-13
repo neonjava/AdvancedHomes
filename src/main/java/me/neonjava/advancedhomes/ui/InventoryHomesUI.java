@@ -1,6 +1,7 @@
 package me.neonjava.advancedhomes.ui;
 
 import me.neonjava.advancedhomes.AdvancedHomesPlugin;
+import me.neonjava.advancedhomes.config.ConfigManager;
 import me.neonjava.advancedhomes.model.Home;
 import me.neonjava.advancedhomes.util.UnicodeFont;
 import org.bukkit.Bukkit;
@@ -78,10 +79,15 @@ public class InventoryHomesUI implements HomesUI {
                 if (iconMat == null) iconMat = Material.WHITE_BED;
 
                 if (isLocked) {
+                    ConfigManager.RankRequirement req = plugin.getConfigManager().getRankRequirementForSlot(globalSlotIndex);
+                    String[] tooltipLines = plugin.getConfigManager().getMessageLockedTooltip()
+                            .replace("<rank>", req.getRankName())
+                            .replace("<slots>", String.valueOf(req.getSlots()))
+                            .split("\n");
                     inv.setItem(i, createItem(
                             Material.RED_STAINED_GLASS_PANE,
                             "&c" + UnicodeFont.toSmallCaps("Locked"),
-                            plugin.getConfigManager().getMessageLockedTooltip()
+                            tooltipLines
                     ));
                 } else {
                     inv.setItem(i, createItem(
@@ -98,10 +104,15 @@ public class InventoryHomesUI implements HomesUI {
                         "&eClick to create a home here"
                 ));
             } else {
+                ConfigManager.RankRequirement req = plugin.getConfigManager().getRankRequirementForSlot(globalSlotIndex);
+                String[] tooltipLines = plugin.getConfigManager().getMessageLockedTooltip()
+                        .replace("<rank>", req.getRankName())
+                        .replace("<slots>", String.valueOf(req.getSlots()))
+                        .split("\n");
                 inv.setItem(i, createItem(
                         Material.RED_STAINED_GLASS_PANE,
                         "&c" + UnicodeFont.toSmallCaps("Locked"),
-                        plugin.getConfigManager().getMessageLockedTooltip()
+                        tooltipLines
                 ));
             }
         }
@@ -176,8 +187,12 @@ public class InventoryHomesUI implements HomesUI {
      */
     @Override
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
+        openHomeManagementMenu(player, home, isLocked, -1);
+    }
+
+    public void openHomeManagementMenu(Player player, Home home, boolean isLocked, int slotIndex) {
         String title = UnicodeFont.toSmallCaps(home.getName());
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), org.bukkit.event.inventory.InventoryType.HOPPER, title);
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked, 0, "", "all", slotIndex), org.bukkit.event.inventory.InventoryType.HOPPER, title);
 
         if (!isLocked) {
             inv.setItem(0, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport"), "&f&oClick to teleport"));
