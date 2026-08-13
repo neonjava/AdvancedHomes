@@ -39,10 +39,10 @@ mysql:
 # When hovering over locked slots in range (e.g. 4-5), the plugin will display the corresponding required rank name!
 ranks:
   VIP: 5
-  MVP: 10
-  DONUT: 25
-  DONUT_PLUS: 50
-  DONUT_PLUS_PLUS: 90
+  VIP_PLUS: 10
+  MVP: 25
+  MVP_PLUS: 50
+  MVP_PLUS_PLUS: 90
 
 # Custom messages configuration (supports color codes like &e, &c, &b, and placeholders)
 messages:
