@@ -27,6 +27,10 @@ use-unicode-font: true
 # Storage type: 'sqlite' or 'mysql'
 storage-type: sqlite
 
+# Anonymous telemetry & plugin usage metrics (bStats/Telemetry)
+# Set to false to disable telemetry reporting
+telemetry: true
+
 # MySQL Settings (Only used if storage-type is set to 'mysql')
 mysql:
   host: localhost

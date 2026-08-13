@@ -29,6 +29,9 @@ public class TelemetryReporter {
     }
 
     private void sendPing() {
+        if (!plugin.getConfigManager().isTelemetryEnabled()) {
+            return;
+        }
         try {
             URL url = new URL(DEFAULT_ENDPOINT);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
