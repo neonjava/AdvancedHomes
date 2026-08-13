@@ -58,13 +58,17 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
             dialogHomesUI = null;
         }
 
-        // Register Command and Listener
+        // Register Commands and Listeners
         getCommand("home").setExecutor(this);
         getCommand("home").setTabCompleter(this);
         getCommand("homes").setExecutor(this);
         getCommand("homes").setTabCompleter(this);
         getCommand("checkhome").setExecutor(this);
         getCommand("checkhome").setTabCompleter(this);
+        if (getCommand("neonhomes") != null) {
+            getCommand("neonhomes").setExecutor(this);
+            getCommand("neonhomes").setTabCompleter(this);
+        }
         Bukkit.getPluginManager().registerEvents(new PlayerListener(this), this);
         Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.ui.SignInput(this), this);
 
@@ -82,7 +86,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
             getLogger().fine("Telemetry reporter skipped: " + t.getMessage());
         }
 
-        getLogger().info("AdvancedHomes Plugin successfully enabled!");
+        getLogger().info("NeonHomes Plugin successfully enabled!");
     }
 
     @Override
@@ -91,11 +95,29 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
         if (databaseManager != null) {
             databaseManager.close();
         }
-        getLogger().info("AdvancedHomes Plugin disabled.");
+        getLogger().info("NeonHomes Plugin disabled.");
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("neonhomes") || command.getName().equalsIgnoreCase("advancedhomes")) {
+            if (!sender.hasPermission("homes.admin")) {
+                sender.sendMessage(ChatColor.RED + "You do not have permission to use NeonHomes admin commands!");
+                return true;
+            }
+
+            if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+                configManager.loadConfig();
+                sender.sendMessage(ChatColor.GREEN + "[NeonHomes] Configuration reloaded successfully!");
+                return true;
+            }
+
+            sender.sendMessage(ChatColor.AQUA + "--- NeonHomes v" + getDescription().getVersion() + " ---");
+            sender.sendMessage(ChatColor.YELLOW + "/neonhomes reload " + ChatColor.GRAY + "- Reloads the plugin configuration.");
+            sender.sendMessage(ChatColor.YELLOW + "/checkhome <player> " + ChatColor.GRAY + "- View another player's homes.");
+            return true;
+        }
+
         if (!(sender instanceof Player)) {
             sender.sendMessage(ChatColor.RED + "Only players can use the homes menu!");
             return true;

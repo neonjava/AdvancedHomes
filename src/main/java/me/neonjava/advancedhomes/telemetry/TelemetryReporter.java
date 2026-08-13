@@ -41,7 +41,7 @@ public class TelemetryReporter {
 
             String jsonPayload = String.format(
                     "{\"pluginName\":\"%s\",\"pluginVersion\":\"%s\",\"serverId\":\"%s\",\"serverVersion\":\"%s\",\"onlinePlayers\":%d,\"maxPlayers\":%d,\"port\":%d}",
-                    "AdvancedHomes",
+                    plugin.getDescription().getName(),
                     plugin.getDescription().getVersion(),
                     serverId,
                     Bukkit.getVersion().replace("\"", "\\\""),

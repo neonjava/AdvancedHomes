@@ -1,20 +1,26 @@
-name: AdvancedHomes
+name: NeonHomes
 version: 1.0.1
 main: me.neonjava.advancedhomes.AdvancedHomesPlugin
 api-version: '1.21'
 author: neonjava
-description: A completely custom Homes plugin using Paper 1.21.7+ Dialog API and fallback Inventory GUI.
+description: A DonutSMP-inspired Homes plugin using Paper 1.21.7+ Dialog API and fallback Inventory GUI.
 folia-supported: true
 
 commands:
   home:
     description: Teleport to a home or open homes menu.
+    aliases: [homes, h]
   homes:
     description: Opens the homes menu.
   checkhome:
     description: Opens the homes menu of another player.
     permission: homes.admin.checkhome
     permission-message: You do not have permission to check other player's homes.
+  neonhomes:
+    description: Admin commands for NeonHomes plugin.
+    aliases: [nh, advancedhomes, ah]
+    permission: homes.admin
+    permission-message: You do not have permission to use NeonHomes admin commands.
 
 permissions:
   homes.use:

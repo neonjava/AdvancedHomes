@@ -31,7 +31,7 @@ tasks {
     }
 
     shadowJar {
-        archiveBaseName.set("AdvancedHomes")
+        archiveBaseName.set("NeonHomes")
         archiveClassifier.set("")
     }
 }
