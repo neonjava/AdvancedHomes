@@ -244,7 +244,7 @@ public class DialogHomesUI implements HomesUI {
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .body(List.of(
-                            DialogBody.item(displayItem, DialogBody.plainMessage(Component.text("Home: " + home.getName())), true, false, 16, 16),
+                            DialogBody.item(displayItem).showDecorations(true).showTooltip(true).build(),
                             DialogBody.plainMessage(Component.text("Select an option:"))
                     ))
                     .build());
@@ -343,13 +343,21 @@ public class DialogHomesUI implements HomesUI {
             buttons.add(ActionButton.create(label, Component.text(displayName + "\nClick to select"), 120, selectAction));
         }
 
-        String title = UnicodeFont.toSmallCaps("Search");
+        String title = UnicodeFont.toSmallCaps("Choose Icon");
+
+        Material currentMat = Material.matchMaterial(home.getIconMaterial());
+        if (currentMat == null) currentMat = Material.WHITE_BED;
+        org.bukkit.inventory.ItemStack currentItem = new org.bukkit.inventory.ItemStack(currentMat);
+
         Dialog dialog = Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(Component.text(title))
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
-                    .body(List.of(DialogBody.plainMessage(Component.text("Select an icon below:"))))
+                    .body(List.of(
+                            DialogBody.item(currentItem).showDecorations(true).showTooltip(true).build(),
+                            DialogBody.plainMessage(Component.text("Select an icon below:"))
+                    ))
                     .build());
             // 4 columns as in Image 5
             builder.type(DialogType.multiAction(buttons, null, 4));
