@@ -59,8 +59,8 @@ public class DialogHomesUI implements HomesUI {
     }
 
     /**
-     * Paper Dialog Main Homes selection menu (Image 4 format):
-     * Buttons arranged in 4 columns: [Home 1] [Home 2] [tt] [+ Create Home] ...
+     * Paper Dialog Main Homes selection menu:
+     * Buttons arranged in 6 columns, 1 row: [Home 1] [Home 2] [Home 3] [Home 4] [Home 5] [Locked]
      */
     @Override
     public void openMainHomesMenu(Player player, int page) {
@@ -87,7 +87,7 @@ public class DialogHomesUI implements HomesUI {
                     });
                 }, defaultOptions);
 
-                buttons.add(ActionButton.create(label, tooltip, 120, action));
+                buttons.add(ActionButton.create(label, tooltip, 75, action));
             } else if (i < limit) {
                 Component label = Component.text("+ " + UnicodeFont.toSmallCaps("Create Home"), NamedTextColor.GREEN);
                 Component tooltip = Component.text("Empty Home Slot. Click to set a home at your current location.");
@@ -96,7 +96,7 @@ public class DialogHomesUI implements HomesUI {
                         openCreateHomeTextInput(player);
                     });
                 }, defaultOptions);
-                buttons.add(ActionButton.create(label, tooltip, 120, action));
+                buttons.add(ActionButton.create(label, tooltip, 75, action));
             } else {
                 Component label = Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED);
                 Component tooltip = getLockedTooltip();
@@ -105,7 +105,7 @@ public class DialogHomesUI implements HomesUI {
                         player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
                     });
                 }, defaultOptions);
-                buttons.add(ActionButton.create(label, tooltip, 120, action));
+                buttons.add(ActionButton.create(label, tooltip, 75, action));
             }
         }
 
@@ -117,8 +117,8 @@ public class DialogHomesUI implements HomesUI {
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .body(List.of(DialogBody.plainMessage(Component.text("Select a home slot:"))))
                     .build());
-            // 4 columns as in Image 4
-            builder.type(DialogType.multiAction(buttons, null, 4));
+            // 6 columns, compact single row
+            builder.type(DialogType.multiAction(buttons, null, 6));
         });
 
         player.showDialog(dialog);
