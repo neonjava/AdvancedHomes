@@ -336,7 +336,8 @@ public class DialogHomesUI implements HomesUI {
             DialogAction selectAction = DialogAction.customClick((res, aud) -> {
                 runSync(player, () -> {
                     plugin.getHomeManager().updateIcon(player, home.getName(), mat.name());
-                    openHomeManagementMenu(player, home, isLocked);
+                    Home updated = plugin.getHomeManager().getHome(player.getUniqueId(), home.getName());
+                    openHomeManagementMenu(player, updated != null ? updated : home, isLocked);
                 });
             }, defaultOptions);
             Component label = Component.translatable(mat.translationKey());

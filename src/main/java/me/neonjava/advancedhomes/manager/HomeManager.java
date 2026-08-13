@@ -42,6 +42,15 @@ public class HomeManager {
         return cached != null ? cached : new ArrayList<>();
     }
 
+    public Home getHome(UUID playerUuid, String name) {
+        for (Home h : getHomes(playerUuid)) {
+            if (h.getName().equalsIgnoreCase(name)) {
+                return h;
+            }
+        }
+        return null;
+    }
+
     public void invalidateCache(UUID playerUuid) {
         homesCache.remove(playerUuid);
     }
