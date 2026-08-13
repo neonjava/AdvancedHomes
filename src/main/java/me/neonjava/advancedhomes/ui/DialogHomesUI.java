@@ -75,10 +75,9 @@ public class DialogHomesUI implements HomesUI {
                 Home home = homes.get(i);
                 boolean isLocked = i >= limit;
 
-                Component iconComp = plugin.getItemsDatabase().getIconComponent(home.getIconMaterial());
                 Component label = isLocked
                         ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED)
-                        : iconComp.append(Component.text(" ")).append(parseColor(home.getName()));
+                        : parseColor(home.getName());
                 Component tooltip = isLocked ? getLockedTooltip() : Component.text(home.getName() + "\nClick to manage");
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
@@ -235,12 +234,19 @@ public class DialogHomesUI implements HomesUI {
 
         Component title = isLocked ? Component.text(UnicodeFont.toSmallCaps(home.getName()) + " (" + UnicodeFont.toSmallCaps("Locked") + ")") : parseColor(home.getName());
 
+        Material iconMat = Material.matchMaterial(home.getIconMaterial());
+        if (iconMat == null) iconMat = Material.WHITE_BED;
+        org.bukkit.inventory.ItemStack displayItem = new org.bukkit.inventory.ItemStack(iconMat);
+
         Dialog dialog = Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(title)
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
-                    .body(List.of(DialogBody.plainMessage(Component.text("Select an option:"))))
+                    .body(List.of(
+                            DialogBody.item(displayItem, DialogBody.plainMessage(Component.text("Home: " + home.getName())), true, false, 16, 16),
+                            DialogBody.plainMessage(Component.text("Select an option:"))
+                    ))
                     .build());
             builder.type(DialogType.multiAction(buttons, null, 2));
         });
@@ -326,7 +332,6 @@ public class DialogHomesUI implements HomesUI {
 
         // Add all filtered materials in 4 columns (Image 5 format)
         for (Material mat : filtered) {
-            Component iconComp = plugin.getItemsDatabase().getIconComponent(mat);
             String displayName = UnicodeFont.toSmallCaps(mat.name().replace('_', ' ').toLowerCase(Locale.ROOT));
             DialogAction selectAction = DialogAction.customClick((res, aud) -> {
                 runSync(player, () -> {
@@ -334,7 +339,7 @@ public class DialogHomesUI implements HomesUI {
                     openHomeManagementMenu(player, home, isLocked);
                 });
             }, defaultOptions);
-            Component label = iconComp.append(Component.text(" ")).append(Component.translatable(mat.translationKey()));
+            Component label = Component.translatable(mat.translationKey());
             buttons.add(ActionButton.create(label, Component.text(displayName + "\nClick to select"), 120, selectAction));
         }
 

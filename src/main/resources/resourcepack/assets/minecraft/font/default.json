@@ -1,0 +1,326 @@
+{
+  "providers": [
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/white_bed.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE001"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/cobblestone.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE002"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/stone.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE003"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/grass_block_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE004"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/dirt.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE005"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/oak_planks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE006"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/spruce_planks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE007"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/birch_planks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE008"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/oak_log.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE009"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/diamond_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/gold_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00B"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/iron_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00C"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/emerald_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00D"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/redstone_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00E"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/lapis_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE00F"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/obsidian.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE010"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/glowstone.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE011"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/netherite_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE012"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/bricks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE013"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/sand.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE014"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/gravel.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE015"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/glass.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE016"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/bookshelf.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE017"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/tnt_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE018"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:item/lodestone_compass_00.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE019"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/sponge.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/ice.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01B"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/snow.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01C"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/pumpkin_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01D"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/melon_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01E"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/coal_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE01F"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/copper_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE020"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/amethyst_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE021"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/deepslate.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE022"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/moss_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE023"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/sculk.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE024"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/cherry_planks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE025"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/bamboo_planks.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE026"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/prismarine.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE027"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/sea_lantern.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE028"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/crying_obsidian.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE029"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/purpur_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE02A"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/end_stone.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE02B"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/quartz_block_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE02C"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/honey_block_side.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE02D"]
+    },
+    {
+      "type": "bitmap",
+      "file": "minecraft:block/slime_block.png",
+      "ascent": 8,
+      "height": 10,
+      "chars": ["\uE02E"]
+    }
+  ]
+}
