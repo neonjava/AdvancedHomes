@@ -274,7 +274,7 @@ public class InventoryHomesUI implements HomesUI {
             inv.setItem(50, createItem(Material.ARROW, "&a" + UnicodeFont.toSmallCaps("Next Page") + " ▶"));
         }
 
-        inv.setItem(53, createItem(Material.BARRIER, "&c⬅ " + UnicodeFont.toSmallCaps("Back")));
+        inv.setItem(53, createItem(Material.RED_STAINED_GLASS_PANE, "&c⬅ " + UnicodeFont.toSmallCaps("Back")));
 
         player.openInventory(inv);
     }

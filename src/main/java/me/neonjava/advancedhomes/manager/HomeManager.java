@@ -175,7 +175,7 @@ public class HomeManager {
         if (updated) {
             // Reload cache from DB to guarantee consistency
             refreshPlayerHomes(uuid);
-            player.sendMessage(ChatColor.GREEN + "Icon for '" + homeName + "' changed to " + material + ".");
+            player.sendMessage(ChatColor.GRAY + "Icon changed.");
             return true;
         }
         player.sendMessage(ChatColor.RED + "Failed to change icon.");
