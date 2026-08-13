@@ -51,6 +51,27 @@ public class HomeManager {
         return null;
     }
 
+    public String getNextAvailableHomeName(UUID playerUuid) {
+        List<Home> homes = getHomes(playerUuid);
+        if (homes.isEmpty()) {
+            return "Home 1";
+        }
+        for (int i = 1; i <= 1000; i++) {
+            String candidate = "Home " + i;
+            boolean taken = false;
+            for (Home h : homes) {
+                if (h.getName().equalsIgnoreCase(candidate)) {
+                    taken = true;
+                    break;
+                }
+            }
+            if (!taken) {
+                return candidate;
+            }
+        }
+        return "Home " + (homes.size() + 1);
+    }
+
     public void invalidateCache(UUID playerUuid) {
         homesCache.remove(playerUuid);
     }

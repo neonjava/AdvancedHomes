@@ -138,6 +138,7 @@ public class DialogHomesUI implements HomesUI {
     }
 
     private void openCreateHomeTextInput(Player player) {
+        String defaultName = plugin.getHomeManager().getNextAvailableHomeName(player.getUniqueId());
         String title = UnicodeFont.toSmallCaps("Create Home");
         Dialog dialog = Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
@@ -146,7 +147,7 @@ public class DialogHomesUI implements HomesUI {
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .body(List.of(DialogBody.plainMessage(Component.text("Type your home name below:"))))
                     .inputs(List.of(DialogInput.text("name", Component.text("Home Name"))
-                            .initial("Home")
+                            .initial(defaultName)
                             .maxLength(16)
                             .build()))
                     .build());

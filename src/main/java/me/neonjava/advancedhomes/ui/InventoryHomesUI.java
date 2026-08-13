@@ -162,7 +162,8 @@ public class InventoryHomesUI implements HomesUI {
 
     public void openCreateHomeTextInput(Player player) {
         player.closeInventory();
-        SignInput.open(player, UnicodeFont.toSmallCaps("Create Home"), "Home", name -> {
+        String defaultName = plugin.getHomeManager().getNextAvailableHomeName(player.getUniqueId());
+        SignInput.open(player, UnicodeFont.toSmallCaps("Create Home"), defaultName, name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
