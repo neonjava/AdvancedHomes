@@ -177,7 +177,7 @@ public class InventoryHomesUI implements HomesUI {
     @Override
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
         String title = UnicodeFont.toSmallCaps(home.getName());
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), 9, title);
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), org.bukkit.event.inventory.InventoryType.HOPPER, title);
 
         if (!isLocked) {
             inv.setItem(0, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport"), "&f&oClick to teleport"));
