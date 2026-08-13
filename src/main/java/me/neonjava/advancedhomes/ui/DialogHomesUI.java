@@ -75,10 +75,9 @@ public class DialogHomesUI implements HomesUI {
                 Home home = homes.get(i);
                 boolean isLocked = i >= limit;
 
-                String iconIndicator = plugin.getItemsDatabase().getIconIndicator(home.getIconMaterial());
                 Component label = isLocked
                         ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED)
-                        : Component.text(iconIndicator + " ").append(parseColor(home.getName()));
+                        : parseColor(home.getName());
                 Component tooltip = isLocked ? getLockedTooltip() : Component.text(home.getName() + "\nClick to manage");
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
@@ -204,13 +203,6 @@ public class DialogHomesUI implements HomesUI {
                 }, defaultOptions)));
 
         if (!isLocked) {
-            buttons.add(ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Change Icon")), Component.text("Click to select home icon"), 120,
-                    DialogAction.customClick((res, aud) -> {
-                        runSync(player, () -> {
-                            openIconBrowser(player, home, false, 0, "", "all");
-                        });
-                    }, defaultOptions)));
-
             buttons.add(ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Rename")), Component.text("Click to rename"), 120,
                     DialogAction.customClick((res, aud) -> {
                         runSync(player, () -> {
@@ -235,19 +227,12 @@ public class DialogHomesUI implements HomesUI {
 
         Component title = isLocked ? Component.text(UnicodeFont.toSmallCaps(home.getName()) + " (" + UnicodeFont.toSmallCaps("Locked") + ")") : parseColor(home.getName());
 
-        Material iconMat = Material.matchMaterial(home.getIconMaterial());
-        if (iconMat == null) iconMat = Material.WHITE_BED;
-        org.bukkit.inventory.ItemStack displayItem = new org.bukkit.inventory.ItemStack(iconMat);
-
         Dialog dialog = Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
             builder.base(DialogBase.builder(title)
                     .canCloseWithEscape(true)
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
-                    .body(List.of(
-                            DialogBody.item(displayItem).showDecorations(true).showTooltip(true).build(),
-                            DialogBody.plainMessage(Component.text("Select an option:"))
-                    ))
+                    .body(List.of(DialogBody.plainMessage(Component.text("Select an option:"))))
                     .build());
             builder.type(DialogType.multiAction(buttons, null, 2));
         });
