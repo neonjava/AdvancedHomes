@@ -75,9 +75,10 @@ public class DialogHomesUI implements HomesUI {
                 Home home = homes.get(i);
                 boolean isLocked = i >= limit;
 
+                String iconIndicator = plugin.getItemsDatabase().getIconIndicator(home.getIconMaterial());
                 Component label = isLocked
                         ? Component.text(UnicodeFont.toSmallCaps("Locked"), NamedTextColor.RED)
-                        : parseColor(home.getName());
+                        : Component.text(iconIndicator + " ").append(parseColor(home.getName()));
                 Component tooltip = isLocked ? getLockedTooltip() : Component.text(home.getName() + "\nClick to manage");
 
                 DialogAction action = DialogAction.customClick((response, audience) -> {
@@ -332,6 +333,7 @@ public class DialogHomesUI implements HomesUI {
 
         // Add all filtered materials in 4 columns (Image 5 format)
         for (Material mat : filtered) {
+            String iconIndicator = plugin.getItemsDatabase().getIconIndicator(mat);
             String displayName = UnicodeFont.toSmallCaps(mat.name().replace('_', ' ').toLowerCase(Locale.ROOT));
             DialogAction selectAction = DialogAction.customClick((res, aud) -> {
                 runSync(player, () -> {
@@ -340,7 +342,7 @@ public class DialogHomesUI implements HomesUI {
                     openHomeManagementMenu(player, updated != null ? updated : home, isLocked);
                 });
             }, defaultOptions);
-            Component label = Component.translatable(mat.translationKey());
+            Component label = Component.text(iconIndicator + " ").append(Component.translatable(mat.translationKey()));
             buttons.add(ActionButton.create(label, Component.text(displayName + "\nClick to select"), 120, selectAction));
         }
 

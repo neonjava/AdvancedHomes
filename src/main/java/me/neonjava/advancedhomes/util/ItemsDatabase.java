@@ -132,6 +132,7 @@ public class ItemsDatabase {
     }
 
     private final Map<String, List<String>> categories = new HashMap<>();
+    private final Map<String, String> iconEmojis = new HashMap<>();
 
     public ItemsDatabase(Plugin plugin) {
         loadCategories(plugin);
@@ -155,16 +156,41 @@ public class ItemsDatabase {
                     categories.put(entry.getKey().toLowerCase(Locale.ROOT), mats);
                 }
             }
-            plugin.getLogger().info("[ItemsDatabase] Loaded " + FONT_CHARS.size() + " icon mappings and " + categories.size() + " categories.");
+            if (root.has("icon_colors")) {
+                JsonObject colorsObj = root.getAsJsonObject("icon_colors");
+                for (Map.Entry<String, JsonElement> entry : colorsObj.entrySet()) {
+                    iconEmojis.put(entry.getKey().toUpperCase(Locale.ROOT), entry.getValue().getAsString());
+                }
+            }
+            plugin.getLogger().info("[ItemsDatabase] Loaded " + FONT_CHARS.size() + " icon mappings, " + iconEmojis.size() + " emoji indicators, and " + categories.size() + " categories.");
         } catch (Exception e) {
             plugin.getLogger().warning("[ItemsDatabase] Failed to load items.json: " + e.getMessage());
         }
     }
 
     /**
-     * Returns an Adventure Component with the small item texture icon
-     * rendered via the custom font. Falls back to "■" on the default font.
+     * Returns an emoji or symbol string representing the material
+     * that renders on any vanilla Minecraft client without texture packs.
      */
+    public String getIconIndicator(String materialName) {
+        if (materialName == null) return "🛏️";
+        String upper = materialName.toUpperCase(Locale.ROOT);
+        String emoji = iconEmojis.get(upper);
+        if (emoji != null) return emoji;
+        if (upper.contains("BED")) return "🛏️";
+        if (upper.contains("SWORD") || upper.contains("AXE") || upper.contains("PICKAXE")) return "⚔️";
+        if (upper.contains("LOG") || upper.contains("WOOD") || upper.contains("PLANKS")) return "🪵";
+        if (upper.contains("ORE") || upper.contains("DIAMOND") || upper.contains("EMERALD") || upper.contains("GOLD") || upper.contains("IRON")) return "💎";
+        if (upper.contains("STONE") || upper.contains("COBBLE")) return "🧱";
+        if (upper.contains("CHEST") || upper.contains("BARREL") || upper.contains("SHULKER")) return "📦";
+        return "🏠";
+    }
+
+    public String getIconIndicator(Material material) {
+        if (material == null) return "🛏️";
+        return getIconIndicator(material.name());
+    }
+
     public Component getIconComponent(String materialName) {
         if (materialName == null) {
             return Component.text("■");
@@ -174,36 +200,22 @@ public class ItemsDatabase {
         if (ch != null) {
             return Component.text(ch).font(ICON_FONT);
         }
-        // Fallback: try to guess from material name
         return Component.text("■");
     }
 
-    /**
-     * Returns an Adventure Component with the small item texture icon
-     * for a Material enum.
-     */
     public Component getIconComponent(Material material) {
         if (material == null) return Component.text("■");
         return getIconComponent(material.name());
     }
 
-    /**
-     * Check if a material has a custom font icon mapping.
-     */
     public boolean hasIcon(String materialName) {
         return materialName != null && FONT_CHARS.containsKey(materialName.toUpperCase(Locale.ROOT));
     }
 
-    /**
-     * Returns materials in a given category, or empty list.
-     */
     public List<String> getCategory(String categoryName) {
         return categories.getOrDefault(categoryName.toLowerCase(Locale.ROOT), Collections.emptyList());
     }
 
-    /**
-     * Returns all category names.
-     */
     public Set<String> getCategoryNames() {
         return categories.keySet();
     }

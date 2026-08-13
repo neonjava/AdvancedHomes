@@ -1,7 +1,7 @@
 # Advanced Homes Plugin Configuration
 
-# Maximum number of home slots displayed in the UI (e.g. 5)
-max-homes: 5
+# Maximum number of home slots displayed in the UI (90 homes)
+max-homes: 90
 
 # Delay in seconds before a player is teleported to a home (0 for instant)
 teleport-delay: 3
