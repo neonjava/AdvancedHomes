@@ -38,11 +38,7 @@ public class ConfigManager {
     }
 
     public boolean isPreferInventoryUI() {
-        return config.getBoolean("prefer-inventory-ui", true);
-    }
-
-    public String getTeamHomeIcon() {
-        return config.getString("team-home-icon", "EMERALD_BLOCK");
+        return config.getBoolean("prefer-inventory-ui", false);
     }
 
     public String getStorageType() {
