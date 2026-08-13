@@ -5,6 +5,7 @@ import me.neonjava.advancedhomes.listener.PlayerListener;
 import me.neonjava.advancedhomes.manager.ChatInputManager;
 import me.neonjava.advancedhomes.manager.HomeManager;
 import me.neonjava.advancedhomes.storage.DatabaseManager;
+import me.neonjava.advancedhomes.ui.DialogHomesUI;
 import me.neonjava.advancedhomes.ui.InventoryHomesUI;
 import me.neonjava.advancedhomes.ui.HomesUI;
 import org.bukkit.Bukkit;
@@ -29,6 +30,7 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
     private HomeManager homeManager;
     private ChatInputManager chatInputManager;
     private HomesUI inventoryHomesUI;
+    private HomesUI dialogHomesUI;
 
     @Override
     public void onEnable() {
@@ -45,9 +47,16 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
         // UI instances
         inventoryHomesUI = new InventoryHomesUI(this);
 
+        try {
+            Class.forName("io.papermc.paper.dialog.Dialog");
+            dialogHomesUI = new DialogHomesUI(this);
+            getLogger().info("Paper Dialog API detected and initialized!");
+        } catch (Throwable t) {
+            getLogger().info("Paper Dialog API not detected or unsupported, using Inventory GUI fallback.");
+            dialogHomesUI = null;
+        }
+
         // Register Command and Listener
-        getCommand("devhome").setExecutor(this);
-        getCommand("devhome").setTabCompleter(this);
         getCommand("home").setExecutor(this);
         getCommand("home").setTabCompleter(this);
         getCommand("homes").setExecutor(this);
@@ -62,6 +71,14 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
             Bukkit.getPluginManager().registerEvents(new me.neonjava.advancedhomes.listener.PaperChatListener(this), this);
             getLogger().info("Paper AsyncChatEvent listener registered successfully!");
         } catch (ClassNotFoundException ignored) {}
+
+        // Start Telemetry Reporter
+        try {
+            new me.neonjava.advancedhomes.telemetry.TelemetryReporter(this).start();
+            getLogger().info("Telemetry reporter initialized.");
+        } catch (Throwable t) {
+            getLogger().fine("Telemetry reporter skipped: " + t.getMessage());
+        }
 
         getLogger().info("AdvancedHomes Plugin successfully enabled!");
     }
@@ -155,7 +172,44 @@ public class AdvancedHomesPlugin extends JavaPlugin implements CommandExecutor, 
     }
 
     public HomesUI getUI(Player player) {
-        return inventoryHomesUI;
+        if (configManager.isPreferInventoryUI()) {
+            return inventoryHomesUI;
+        }
+        if (configManager.isEnableBedrockSupport() && isBedrockPlayer(player.getUniqueId())) {
+            return inventoryHomesUI;
+        }
+        if (dialogHomesUI == null) {
+            return inventoryHomesUI;
+        }
+        try {
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
+                Class<?> viaClass = Class.forName("com.viaversion.viaversion.api.Via");
+                Object api = viaClass.getMethod("getAPI").invoke(null);
+                int protocolVersion = (int) api.getClass().getMethod("getPlayerVersion", UUID.class).invoke(api, player.getUniqueId());
+                // Clients < 1.21.5/1.21.7 (protocol < 770) will be served custom InventoryHomesUI chest GUI
+                if (protocolVersion < 770) {
+                    return inventoryHomesUI;
+                }
+            }
+        } catch (Throwable ignored) {}
+
+        return dialogHomesUI;
+    }
+
+    private boolean isBedrockPlayer(UUID uuid) {
+        try {
+            if (Bukkit.getPluginManager().isPluginEnabled("Geyser-Spigot")) {
+                return org.geysermc.geyser.api.GeyserApi.api().isBedrockPlayer(uuid);
+            }
+        } catch (Throwable ignored) {}
+
+        try {
+            if (Bukkit.getPluginManager().isPluginEnabled("floodgate")) {
+                return org.geysermc.floodgate.api.FloodgateApi.getInstance().isFloodgatePlayer(uuid);
+            }
+        } catch (Throwable ignored) {}
+
+        return false;
     }
 
     public ConfigManager getConfigManager() {

@@ -1,5 +1,6 @@
 package me.neonjava.advancedhomes.ui;
 
+import me.neonjava.advancedhomes.AdvancedHomesPlugin;
 import io.papermc.paper.math.Position;
 import io.papermc.paper.event.packet.UncheckedSignChangeEvent;
 import io.papermc.paper.math.BlockPosition;
@@ -66,9 +67,25 @@ public class SignInput implements Listener {
         Location loc = new Location(player.getWorld(), x, y, z);
         player.sendBlockChange(loc, signState.getBlockData());
         player.sendBlockUpdate(loc, signState);
-        player.openVirtualSign(Position.block(loc), Side.FRONT);
 
         sessions.put(player, new SignSession(callback, Position.block(loc)));
+
+        try {
+            player.openSign(signState);
+        } catch (Throwable t1) {
+            try {
+                player.openVirtualSign(Position.block(loc), Side.FRONT);
+            } catch (Throwable t2) {
+                try {
+                    java.lang.reflect.Method m = player.getClass().getMethod("openVirtualSign", Location.class, Side.class);
+                    m.invoke(player, loc, Side.FRONT);
+                } catch (Throwable t3) {
+                    sessions.remove(player);
+                    ((AdvancedHomesPlugin) plugin).getChatInputManager().promptPlayer(player, callback);
+                    player.sendMessage(org.bukkit.ChatColor.YELLOW + "Please type your home name in chat:");
+                }
+            }
+        }
     }
 
     /**

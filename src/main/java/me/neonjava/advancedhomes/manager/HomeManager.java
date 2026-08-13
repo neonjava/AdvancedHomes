@@ -153,13 +153,14 @@ public class HomeManager {
     }
 
     public int getPlayerHomeLimit(Player player) {
-        if (player.isOp()) return 10;
-        for (int i = 10; i >= 1; i--) {
+        int max = plugin.getConfigManager().getMaxHomes();
+        if (player.isOp()) return max;
+        for (int i = max; i >= 1; i--) {
             if (player.hasPermission("homes.limit." + i)) {
                 return i;
             }
         }
-        return 1; // Default fallback
+        return 3; // Default fallback for players (matches 3 free homes as per reference screenshots!)
     }
 
     public void teleportPlayer(Player player, Home home) {

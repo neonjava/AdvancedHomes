@@ -18,7 +18,7 @@ public class ConfigManager {
     }
 
     public int getMaxHomes() {
-        return config.getInt("max-homes", 10);
+        return config.getInt("max-homes", 90);
     }
 
     public int getTeleportDelay() {
@@ -74,15 +74,19 @@ public class ConfigManager {
     }
 
     public String getMessageBuyRank() {
-        return config.getString("messages.buy-rank", "&eBuy from &b&ndiscord.ninemc.fun&e store section");
+        return config.getString("messages.buy-rank", "&ePurchase rank upgrades at &b&nneonjava.in&e store section!");
+    }
+
+    public String getMessageLockedTooltip() {
+        return config.getString("messages.locked-tooltip", "&fVisit &b&nneonjava.in&f for even more home slots");
     }
 
     public String getMessageLockedWarning() {
-        return config.getString("messages.locked-warning", "&cThis home slot is locked by your rank. Upgrade to access more homes!");
+        return config.getString("messages.locked-warning", "&cThis home slot is locked by your rank. Visit &b&nneonjava.in&c to upgrade!");
     }
 
     public String getMessageBuyRanksWarning() {
-        return config.getString("messages.buy-ranks-warning", "&eRanks can be purchased at &b&ndiscord.ninemc.fun&e in the store section.");
+        return config.getString("messages.buy-ranks-warning", "&eRanks can be purchased at &b&nneonjava.in&e in the store section.");
     }
 
     public String getMessageHomeExpired() {
@@ -90,6 +94,6 @@ public class ConfigManager {
     }
 
     public String getMessageNeedRankTeleport() {
-        return config.getString("messages.need-rank-teleport", "&cYou need a higher rank to access this home! Buy ranks from &b&ndiscord.ninemc.fun&e in the store section.");
+        return config.getString("messages.need-rank-teleport", "&cYou need a higher rank to access this home! Visit &b&nneonjava.in&c to unlock.");
     }
 }

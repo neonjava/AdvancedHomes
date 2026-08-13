@@ -4,10 +4,7 @@ import me.neonjava.advancedhomes.AdvancedHomesPlugin;
 import me.neonjava.advancedhomes.model.Home;
 import me.neonjava.advancedhomes.ui.HomesHolder;
 import me.neonjava.advancedhomes.ui.InventoryHomesUI;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,17 +14,15 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.Material;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 public class PlayerListener implements Listener {
     private final AdvancedHomesPlugin plugin;
-    private final int[] homeSlots = {2, 3, 4, 5, 6, 11, 12, 13, 14, 15};
 
     public PlayerListener(AdvancedHomesPlugin plugin) {
         this.plugin = plugin;
@@ -35,14 +30,11 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // Refresh homes from database on login to ensure fresh data
-        // (prevents stale/empty cache from persisting across sessions)
         plugin.getHomeManager().refreshPlayerHomes(event.getPlayer().getUniqueId());
     }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        // Clear cached homes on logout to free memory and prevent stale data
         plugin.getHomeManager().invalidateCache(event.getPlayer().getUniqueId());
     }
 
@@ -59,18 +51,10 @@ public class PlayerListener implements Listener {
         if (isCheckHomesHolder) {
             me.neonjava.advancedhomes.ui.CheckHomesHolder checkHolder = (me.neonjava.advancedhomes.ui.CheckHomesHolder) event.getInventory().getHolder();
             int slot = event.getRawSlot();
-            // Check if slot is one of the home slots
-            int homeIndex = -1;
-            for (int i = 0; i < homeSlots.length; i++) {
-                if (homeSlots[i] == slot) {
-                    homeIndex = i;
-                    break;
-                }
-            }
-            if (homeIndex != -1) {
+            if (slot >= 0 && slot < 45) {
                 List<Home> homes = plugin.getHomeManager().getHomes(checkHolder.getTarget().getUniqueId());
-                if (homeIndex < homes.size()) {
-                    Home home = homes.get(homeIndex);
+                if (slot < homes.size()) {
+                    Home home = homes.get(slot);
                     player.closeInventory();
                     plugin.getHomeManager().teleportPlayer(player, home, true);
                     player.sendMessage(ChatColor.GREEN + "Teleporting to " + checkHolder.getTarget().getName() + "'s home: " + home.getName());
@@ -86,35 +70,31 @@ public class PlayerListener implements Listener {
 
         switch (holder.getType()) {
             case MAIN:
-                // Check if slot is one of the home slots
-                int homeIndex = -1;
-                for (int i = 0; i < homeSlots.length; i++) {
-                    if (homeSlots[i] == slot) {
-                        homeIndex = i;
-                        break;
-                    }
-                }
-                if (homeIndex != -1) {
-                    List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
-                    int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
+                int currentPage = holder.getPage();
+                int maxHomes = plugin.getConfigManager().getMaxHomes();
+                int itemsPerPage = 45;
+                int totalPages = (maxHomes + itemsPerPage - 1) / itemsPerPage;
 
-                    if (homeIndex < homes.size()) {
-                        Home home = homes.get(homeIndex);
-                        boolean isLocked = homeIndex >= limit;
-                        invUI.openHomeManagementMenu(player, home, isLocked);
-                    } else if (homeIndex < limit) {
-                        invUI.openCreateHomeFlow(player, homeIndex);
-                    } else {
-                        String teamHomeName;
-                        if (homeIndex < homes.size()) {
-                            teamHomeName = homes.get(homeIndex).getName();
+                if (slot >= 0 && slot < 45) {
+                    int globalIndex = currentPage * 45 + slot;
+                    if (globalIndex < maxHomes) {
+                        List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
+                        int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
+
+                        if (globalIndex < homes.size()) {
+                            Home home = homes.get(globalIndex);
+                            boolean isLocked = globalIndex >= limit;
+                            invUI.openHomeManagementMenu(player, home, isLocked);
+                        } else if (globalIndex < limit) {
+                            invUI.openCreateHomeTextInput(player);
                         } else {
-                            teamHomeName = "home" + (homeIndex + 1);
+                            player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageBuyRanksWarning()));
                         }
-                        invUI.openTeamHomeMenu(player, teamHomeName, homeIndex);
                     }
-                } else if (slot == 22) {
-                    invUI.openTeamHomeMenu(player);
+                } else if (slot == 45 && currentPage > 0) {
+                    invUI.openMainHomesMenu(player, currentPage - 1);
+                } else if (slot == 53 && currentPage < totalPages - 1) {
+                    invUI.openMainHomesMenu(player, currentPage + 1);
                 }
                 break;
 
@@ -129,44 +109,30 @@ public class PlayerListener implements Listener {
             case MANAGEMENT:
                 Home mHome = holder.getHome();
                 boolean isLocked = holder.isLocked();
-                if (slot == 22) {
-                    invUI.openMainHomesMenu(player);
-                } else if (slot == 16) {
-                    invUI.openDeleteConfirmation(player, mHome);
-                } else if (slot == 10) {
+                if (slot == 2) {
+                    // Teleport (Slot 2)
                     player.closeInventory();
                     if (isLocked) {
                         int remaining = mHome.getRemainingTeleports();
                         if (remaining <= 0) {
                             player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageHomeExpired()));
                             player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfigManager().getMessageNeedRankTeleport()));
-                            player.sendMessage(ChatColor.YELLOW + "Coordinates of '" + mHome.getName() + "': X: " + (int)mHome.getX() + ", Y: " + (int)mHome.getY() + ", Z: " + (int)mHome.getZ() + " in world: " + mHome.getWorldName());
                             return;
                         }
-
                         int nextRemaining = remaining - 1;
                         mHome.setRemainingTeleports(nextRemaining);
                         plugin.getDatabaseManager().updateRemainingTeleports(player.getUniqueId(), mHome.getName(), nextRemaining);
-                        player.sendMessage(ChatColor.GOLD + "Warning: You can teleport to this home only " + nextRemaining + " more times before it expires!");
                     }
                     plugin.getHomeManager().teleportPlayer(player, mHome);
-                } else if (!isLocked) {
-                    if (slot == 12) {
-                        invUI.openRenameHomeTextInput(player, mHome);
-                    } else if (slot == 14) {
-                        invUI.openIconBrowser(player, mHome, false, 0, "", "all");
-                    }
-                } else {
-                    if (slot == 11) {
-                        player.closeInventory();
-                        player.performCommand("team sethome " + mHome.getName());
-                    } else if (slot == 12) {
-                        player.closeInventory();
-                        player.performCommand("team home " + mHome.getName());
-                    } else if (slot == 14) {
-                        player.closeInventory();
-                        player.performCommand("team delhome " + mHome.getName());
-                    }
+                } else if (slot == 3 && !isLocked) {
+                    // Rename (Slot 3)
+                    invUI.openRenameHomeTextInput(player, mHome);
+                } else if (slot == 4 && !isLocked) {
+                    // Icon (Slot 4)
+                    invUI.openIconBrowser(player, mHome, false, 0, "", "all");
+                } else if (slot == 6) {
+                    // Delete (Slot 6)
+                    invUI.openDeleteConfirmation(player, mHome);
                 }
                 break;
 
@@ -183,7 +149,6 @@ public class PlayerListener implements Listener {
                 }
 
                 if (slot == 45) {
-                    // Cycle category
                     String nextCat = getNextCategory(category);
                     invUI.openIconBrowser(player, iHome, iLocked, 0, query, nextCat);
                     return;
@@ -199,11 +164,9 @@ public class PlayerListener implements Listener {
                     return;
                 }
 
-                // Next page check
                 List<Material> filtered = filterMaterials(query, category);
-                int itemsPerPage = 45;
-                int totalPages = (filtered.size() + itemsPerPage - 1) / itemsPerPage;
-                if (slot == 50 && page < totalPages - 1) {
+                int totalIconPages = (filtered.size() + 45 - 1) / 45;
+                if (slot == 50 && page < totalIconPages - 1) {
                     invUI.openIconBrowser(player, iHome, iLocked, page + 1, query, category);
                     return;
                 }
@@ -227,36 +190,6 @@ public class PlayerListener implements Listener {
                     invUI.openHomeManagementMenu(player, dHome, holder.isLocked());
                 }
                 break;
-
-            case TEAM_MANAGEMENT:
-                String teamHomeName = holder.getSearchQuery();
-                int teamSlotIndex = holder.getSlotIndex();
-                if (slot == 22) {
-                    invUI.openMainHomesMenu(player);
-                } else if (teamSlotIndex == -1) {
-                    if (slot == 11) {
-                        player.closeInventory();
-                        player.performCommand("team sethome");
-                    } else if (slot == 13) {
-                        player.closeInventory();
-                        player.performCommand("team home");
-                    } else if (slot == 15) {
-                        player.closeInventory();
-                        player.performCommand("team delhome");
-                    }
-                } else {
-                    if (slot == 11) {
-                        player.closeInventory();
-                        player.performCommand("team sethome " + teamHomeName);
-                    } else if (slot == 12) {
-                        player.closeInventory();
-                        player.performCommand("team home " + teamHomeName);
-                    } else if (slot == 14) {
-                        player.closeInventory();
-                        player.performCommand("team delhome " + teamHomeName);
-                    }
-                }
-                break;
         }
     }
 
@@ -268,7 +201,7 @@ public class PlayerListener implements Listener {
 
         String cmdName = parts[0].substring(1).toLowerCase(Locale.ROOT);
 
-        if (cmdName.equals("home") || cmdName.equals("homes") || cmdName.equals("devhome") || cmdName.equals("devhomes")) {
+        if (cmdName.equals("home") || cmdName.equals("homes")) {
             event.setCancelled(true);
             Player player = event.getPlayer();
 
@@ -296,8 +229,8 @@ public class PlayerListener implements Listener {
         Player player = event.getPlayer();
         UUID uuid = player.getUniqueId();
         if (plugin.getHomeManager().isTeleporting(uuid)) {
-            Location from = event.getFrom();
-            Location to = event.getTo();
+            org.bukkit.Location from = event.getFrom();
+            org.bukkit.Location to = event.getTo();
             if (to != null && (from.getBlockX() != to.getBlockX() || from.getBlockY() != to.getBlockY() || from.getBlockZ() != to.getBlockZ())) {
                 plugin.getHomeManager().cancelTeleport(uuid);
                 player.sendMessage(ChatColor.RED + "Teleportation cancelled due to movement.");
@@ -316,14 +249,13 @@ public class PlayerListener implements Listener {
     }
 
     private List<Material> filterMaterials(String query, String category) {
-        List<Material> results = new ArrayList<>();
+        java.util.List<Material> results = new java.util.ArrayList<>();
         String lowerQuery = query.toLowerCase(Locale.ROOT);
         for (Material mat : Material.values()) {
             if (!mat.isItem() || mat.isAir()) continue;
             String name = mat.name().toLowerCase(Locale.ROOT);
             if (!name.contains(lowerQuery)) continue;
 
-            // Filter by category
             if ("blocks".equals(category) && !mat.isBlock()) continue;
             if ("food".equals(category) && !mat.isEdible()) continue;
             if ("tools".equals(category)) {

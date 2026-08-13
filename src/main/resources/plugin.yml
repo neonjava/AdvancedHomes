@@ -7,9 +7,6 @@ description: A completely custom Homes plugin using Paper 1.21.7+ Dialog API and
 folia-supported: true
 
 commands:
-  devhome:
-    description: Opens the homes menu.
-    aliases: [ devhomes ]
   home:
     description: Teleport to a home or open homes menu.
   homes:

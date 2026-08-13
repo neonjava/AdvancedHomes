@@ -2,6 +2,7 @@ package me.neonjava.advancedhomes.ui;
 
 import me.neonjava.advancedhomes.AdvancedHomesPlugin;
 import me.neonjava.advancedhomes.model.Home;
+import me.neonjava.advancedhomes.util.UnicodeFont;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -11,12 +12,10 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class InventoryHomesUI implements HomesUI {
     private final AdvancedHomesPlugin plugin;
-    private final int[] homeSlots = {2, 3, 4, 5, 6, 11, 12, 13, 14, 15};
 
     public InventoryHomesUI(AdvancedHomesPlugin plugin) {
         this.plugin = plugin;
@@ -31,158 +30,114 @@ public class InventoryHomesUI implements HomesUI {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-            List<String> loreList = new ArrayList<>();
-            for (String line : lore) {
-                loreList.add(ChatColor.translateAlternateColorCodes('&', line));
+            if (lore.length > 0) {
+                List<String> loreList = new ArrayList<>();
+                for (String line : lore) {
+                    loreList.add(ChatColor.translateAlternateColorCodes('&', line));
+                }
+                meta.setLore(loreList);
             }
-            meta.setLore(loreList);
             item.setItemMeta(meta);
         }
         return item;
     }
 
-    private ComponentToBukkit formatName(String name) {
-        if (plugin.getConfigManager().isAllowColoredNames()) {
-            return new ComponentToBukkit(ChatColor.translateAlternateColorCodes('&', name));
-        } else {
-            return new ComponentToBukkit(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', name)));
-        }
-    }
-
-    private static class ComponentToBukkit {
-        private final String text;
-        public ComponentToBukkit(String text) {
-            this.text = text;
-        }
-        @Override
-        public String toString() {
-            return text;
-        }
-    }
-
-    public List<String> getRankCriteriaLore(int slotIndex) {
-        String rankStr;
-        if (slotIndex >= 1 && slotIndex <= 4) { // Homes 2, 3, 4, 5
-            rankStr = "VIP+";
-        } else if (slotIndex == 5) { // Home 6
-            rankStr = "MVP";
-        } else if (slotIndex >= 6 && slotIndex <= 7) { // Homes 7, 8
-            rankStr = "STAR";
-        } else { // Homes 9, 10
-            rankStr = "GOD";
-        }
-
-        List<String> lore = new ArrayList<>();
-        lore.add(plugin.getConfigManager().getMessageNeedRank().replace("<rank>", rankStr));
-        lore.add(plugin.getConfigManager().getMessageBuyRank());
-        return lore;
+    @Override
+    public void openMainHomesMenu(Player player) {
+        openMainHomesMenu(player, 0);
     }
 
     @Override
-    public void openMainHomesMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MAIN), 27, ChatColor.DARK_BLUE + "Homes Menu");
-
-        // Fill background with light gray glass panes
-        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, border);
-        }
+    public void openMainHomesMenu(Player player, int page) {
+        String title = UnicodeFont.toSmallCaps("Homes");
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MAIN, page, "", "all", -1), 54, title);
 
         List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
         int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
+        int maxHomes = plugin.getConfigManager().getMaxHomes();
 
-        for (int i = 0; i < 10; i++) {
-            int slot = homeSlots[i];
-            if (i < homes.size()) {
-                Home home = homes.get(i);
-                boolean isLocked = i >= limit;
+        int itemsPerPage = 45;
+        int totalPages = (maxHomes + itemsPerPage - 1) / itemsPerPage;
+        if (totalPages == 0) totalPages = 1;
+        int currentPage = Math.max(0, Math.min(page, totalPages - 1));
+
+        int startHomeIndex = currentPage * itemsPerPage;
+
+        for (int i = 0; i < 45; i++) {
+            int globalSlotIndex = startHomeIndex + i;
+            if (globalSlotIndex >= maxHomes) {
+                inv.setItem(i, createItem(Material.AIR, " "));
+                continue;
+            }
+
+            if (globalSlotIndex < homes.size()) {
+                Home home = homes.get(globalSlotIndex);
+                boolean isLocked = globalSlotIndex >= limit;
 
                 Material iconMat = Material.matchMaterial(home.getIconMaterial());
-                if (iconMat == null) iconMat = Material.RED_BED;
+                if (iconMat == null) iconMat = Material.WHITE_BED;
 
-                String displayName = isLocked ? "&c🔒 Locked Home" : "&a" + home.getName();
-                String statusStr = isLocked ? "&cLocked by Rank" : "&aActive";
-
-                List<String> loreList = new ArrayList<>();
-                loreList.add("&7Status: " + statusStr);
                 if (isLocked) {
-                    loreList.add("");
-                    loreList.addAll(getRankCriteriaLore(i));
-                    loreList.add("");
-                    loreList.add("&eClick to Manage (Limited Teleport / Delete)");
+                    inv.setItem(i, createItem(
+                            Material.RED_STAINED_GLASS_PANE,
+                            "&c" + UnicodeFont.toSmallCaps("Locked"),
+                            plugin.getConfigManager().getMessageLockedTooltip()
+                    ));
                 } else {
-                    loreList.add("");
-                    loreList.add("&eClick to Manage Home");
+                    inv.setItem(i, createItem(
+                            iconMat,
+                            "&f" + home.getName(),
+                            "&f&oClick to manage"
+                    ));
                 }
-
-                ItemStack homeItem = createItem(
-                        iconMat,
-                        displayName,
-                        loreList.toArray(new String[0])
-                );
-                inv.setItem(slot, homeItem);
-            } else if (i < limit) {
-                // Empty slot (Create Home)
-                ItemStack createItem = createItem(
-                        Material.GREEN_STAINED_GLASS_PANE,
-                        "&a+ Create Home",
+            } else if (globalSlotIndex < limit) {
+                inv.setItem(i, createItem(
+                        Material.WHITE_BED,
+                        "&a+ " + UnicodeFont.toSmallCaps("Create Home"),
                         "&7Empty Home Slot",
                         "&eClick to create a home here"
-                );
-                inv.setItem(slot, createItem);
+                ));
             } else {
-                // Locked slot (Locked by Rank)
-                List<String> loreList = getRankCriteriaLore(i);
-                ItemStack lockedItem = createItem(
+                inv.setItem(i, createItem(
                         Material.RED_STAINED_GLASS_PANE,
-                        "&c🔒 Locked Slot",
-                        loreList.toArray(new String[0])
-                );
-                inv.setItem(slot, lockedItem);
+                        "&c" + UnicodeFont.toSmallCaps("Locked"),
+                        plugin.getConfigManager().getMessageLockedTooltip()
+                ));
             }
         }
 
-        // Team Home button placed in slot 22 (instead of Close barrier button)
-        String iconName = plugin.getConfigManager().getTeamHomeIcon();
-        Material teamHomeMat = Material.matchMaterial(iconName);
-        if (teamHomeMat == null) teamHomeMat = Material.EMERALD_BLOCK;
-        inv.setItem(22, createItem(teamHomeMat, "&a🚩 Team Home", "&7Click to manage team home"));
+        inv.setItem(49, createItem(Material.GRAY_BED, " "));
+
+        if (currentPage > 0) {
+            inv.setItem(45, createItem(Material.ARROW, "&f◀ " + UnicodeFont.toSmallCaps("Previous Page")));
+        }
+
+        if (currentPage < totalPages - 1) {
+            inv.setItem(53, createItem(Material.ARROW, "&f" + UnicodeFont.toSmallCaps("Next Page") + " ▶"));
+        }
 
         player.openInventory(inv);
     }
 
     public void openCheckHomesMenu(Player admin, OfflinePlayer target) {
-        Inventory inv = Bukkit.createInventory(new CheckHomesHolder(target), 27, ChatColor.DARK_RED + target.getName() + "'s Homes");
-
-        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, border);
-        }
+        String title = UnicodeFont.toSmallCaps(target.getName() + "'s Homes");
+        Inventory inv = Bukkit.createInventory(new CheckHomesHolder(target), 54, title);
 
         List<Home> homes = plugin.getHomeManager().getHomes(target.getUniqueId());
 
-        for (int i = 0; i < 10; i++) {
-            int slot = homeSlots[i];
+        for (int i = 0; i < 45; i++) {
             if (i < homes.size()) {
                 Home home = homes.get(i);
-
                 Material iconMat = Material.matchMaterial(home.getIconMaterial());
-                if (iconMat == null) iconMat = Material.RED_BED;
+                if (iconMat == null) iconMat = Material.WHITE_BED;
 
-                List<String> loreList = new ArrayList<>();
-                loreList.add("&7World: " + home.getWorldName());
-                loreList.add("&7X: " + (int)home.getX() + " Y: " + (int)home.getY() + " Z: " + (int)home.getZ());
-                loreList.add("");
-                loreList.add("&eClick to teleport to this home");
-
-                ItemStack homeItem = createItem(
+                inv.setItem(i, createItem(
                         iconMat,
                         "&a" + home.getName(),
-                        loreList.toArray(new String[0])
-                );
-                inv.setItem(slot, homeItem);
-            } else {
-                inv.setItem(slot, createItem(Material.GRAY_STAINED_GLASS_PANE, "&8Empty Slot"));
+                        "&7World: " + home.getWorldName(),
+                        "&7X: " + (int)home.getX() + " Y: " + (int)home.getY() + " Z: " + (int)home.getZ(),
+                        "&eClick to teleport"
+                ));
             }
         }
 
@@ -191,22 +146,12 @@ public class InventoryHomesUI implements HomesUI {
 
     @Override
     public void openCreateHomeFlow(Player player, int slotIndex) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.CREATE, slotIndex), 27, ChatColor.DARK_GREEN + "Create Home?");
-
-        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, border);
-        }
-
-        inv.setItem(11, createItem(Material.LIME_CONCRETE, "&aCreate Home", "&7Click to enter a home name"));
-        inv.setItem(15, createItem(Material.RED_CONCRETE, "&cCancel", "&7Return to homes list"));
-
-        player.openInventory(inv);
+        openCreateHomeTextInput(player);
     }
 
     public void openCreateHomeTextInput(Player player) {
         player.closeInventory();
-        SignInput.open(player, "Create Home", "Home", name -> {
+        SignInput.open(player, UnicodeFont.toSmallCaps("Create Home"), "Home", name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
@@ -225,66 +170,36 @@ public class InventoryHomesUI implements HomesUI {
         });
     }
 
+    /**
+     * Exact 9-slot action row UI as shown in Image 2:
+     * [Slot 2: Lodestone (Teleport)] [Slot 3: Writable Book (Rename)] [Slot 4: White Bed (Icon)] [Slot 5: Air] [Slot 6: Lava Bucket (Delete)]
+     */
     @Override
     public void openHomeManagementMenu(Player player, Home home, boolean isLocked) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), 27, ChatColor.DARK_BLUE + "Manage Home");
-
-        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, border);
-        }
+        String title = UnicodeFont.toSmallCaps(home.getName());
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.MANAGEMENT, home, isLocked), 9, title);
 
         if (!isLocked) {
-            inv.setItem(10, createItem(Material.COMPASS, "&a⚡ Teleport to Home", "&7Click to teleport to this home after countdown"));
-            inv.setItem(12, createItem(Material.NAME_TAG, "&a✏ Rename Home", "&7Change the name of this home"));
-            inv.setItem(14, createItem(Material.PAINTING, "&a🖼 Change Icon", "&7Select a new icon material"));
+            inv.setItem(2, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport"), "&f&oClick to teleport"));
+            inv.setItem(3, createItem(Material.WRITABLE_BOOK, "&f" + UnicodeFont.toSmallCaps("Rename"), "&f&oClick to rename"));
+            inv.setItem(4, createItem(Material.WHITE_BED, "&f" + UnicodeFont.toSmallCaps("Icon"), "&f&oClick to select home icon"));
+            inv.setItem(5, createItem(Material.AIR, " "));
+            inv.setItem(6, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
         } else {
             int remaining = home.getRemainingTeleports();
-            inv.setItem(10, createItem(Material.COMPASS, "&a⚡ Teleport to Home (" + remaining + " left)", "&7Click to teleport to this home", "&7Limited to 3 total teleports."));
-
-            // Find home index to show rank criteria
-            List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
-            int homeIndex = -1;
-            for (int i = 0; i < homes.size(); i++) {
-                if (homes.get(i).getName().equalsIgnoreCase(home.getName())) {
-                    homeIndex = i;
-                    break;
-                }
-            }
-            List<String> criteriaLore = new ArrayList<>();
-            criteriaLore.add("&7Upgrade your rank to access this home.");
-            criteriaLore.add("&7Only deletion and 3 teleports are allowed.");
-            criteriaLore.add("");
-            if (homeIndex != -1) {
-                criteriaLore.addAll(getRankCriteriaLore(homeIndex));
-            }
-
-            inv.setItem(13, createItem(
-                    Material.BARRIER,
-                    "&c⚠️ Locked by Rank",
-                    criteriaLore.toArray(new String[0])
-            ));
+            inv.setItem(2, createItem(Material.LODESTONE, "&f" + UnicodeFont.toSmallCaps("Teleport") + " (" + remaining + " left)", "&f&oClick to teleport"));
+            inv.setItem(3, createItem(Material.AIR, " "));
+            inv.setItem(4, createItem(Material.AIR, " "));
+            inv.setItem(5, createItem(Material.AIR, " "));
+            inv.setItem(6, createItem(Material.LAVA_BUCKET, "&c" + UnicodeFont.toSmallCaps("Delete"), "&f&oClick to delete"));
         }
-
-        // Team home buttons — only shown for locked/team homes (slots 11, 12, 14)
-        if (isLocked) {
-            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + home.getName()));
-            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + home.getName()));
-            inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + home.getName()));
-        }
-
-        // Delete button is always available
-        inv.setItem(16, createItem(Material.TNT, "&c❌ Delete Home", "&7Permanently delete this home"));
-
-        // Back button
-        inv.setItem(22, createItem(Material.ARROW, "&e⬅ Return to Homes Menu"));
 
         player.openInventory(inv);
     }
 
     public void openRenameHomeTextInput(Player player, Home home) {
         player.closeInventory();
-        SignInput.open(player, "Rename Home", home.getName(), name -> {
+        SignInput.open(player, UnicodeFont.toSmallCaps("Rename Home"), home.getName(), name -> {
             runSync(player, () -> {
                 String trimmed = name.trim();
                 if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel") || trimmed.equals(home.getName())) {
@@ -305,7 +220,8 @@ public class InventoryHomesUI implements HomesUI {
 
     @Override
     public void openIconBrowser(Player player, Home home, boolean isLocked, int page, String searchQuery, String category) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.ICON_BROWSER, home, isLocked, page, searchQuery, category), 54, ChatColor.DARK_BLUE + "Select Icon - Page " + (page + 1));
+        String title = UnicodeFont.toSmallCaps("Select Icon - Page " + (page + 1));
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.ICON_BROWSER, home, isLocked, page, searchQuery, category), 54, title);
 
         List<Material> filtered = filterMaterials(searchQuery, category);
         int itemsPerPage = 45;
@@ -316,47 +232,40 @@ public class InventoryHomesUI implements HomesUI {
         int startIndex = finalPage * itemsPerPage;
         int endIndex = Math.min(startIndex + itemsPerPage, filtered.size());
 
-        // Fill materials in slots 0-44
         for (int i = 0; i < 45; i++) {
             int itemIndex = startIndex + i;
             if (itemIndex < endIndex) {
                 Material mat = filtered.get(itemIndex);
-                inv.setItem(i, createItem(mat, "&a" + mat.name().replace('_', ' '), "&7Click to select as home icon"));
+                inv.setItem(i, createItem(mat, "&a" + UnicodeFont.toSmallCaps(mat.name().replace('_', ' ')), "&7Click to select as home icon"));
             } else {
                 inv.setItem(i, createItem(Material.AIR, " "));
             }
         }
 
-        // Fill border in slots 45-53
         ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 45; i < 54; i++) {
             inv.setItem(i, border);
         }
 
-        // Category button (slot 45)
-        inv.setItem(45, createItem(Material.BOOKSHELF, "&e📁 Category: " + category.toUpperCase(), "&7Click to cycle categories: ALL -> BLOCKS -> FOOD -> TOOLS -> MISC"));
+        inv.setItem(45, createItem(Material.BOOKSHELF, "&e📁 Category: " + category.toUpperCase(), "&7Click to cycle categories"));
+        inv.setItem(46, createItem(Material.ANVIL, "&e🔍 Search: &f" + (searchQuery.isEmpty() ? "[None]" : searchQuery), "&7Click to search"));
 
-        // Search button (slot 46)
-        inv.setItem(46, createItem(Material.ANVIL, "&e🔍 Search Query: &f" + (searchQuery.isEmpty() ? "[None]" : searchQuery), "&7Click to search for item names in chat"));
-
-        // Page Indicator & Pagination
         if (finalPage > 0) {
-            inv.setItem(48, createItem(Material.ARROW, "&a◀ Previous Page"));
+            inv.setItem(48, createItem(Material.ARROW, "&a◀ " + UnicodeFont.toSmallCaps("Previous Page")));
         }
-        inv.setItem(49, createItem(Material.BOOK, "&bPage " + (finalPage + 1) + " of " + totalPages, "&7Total matches: " + filtered.size()));
+        inv.setItem(49, createItem(Material.BOOK, "&bPage " + (finalPage + 1) + " of " + totalPages));
         if (finalPage < totalPages - 1) {
-            inv.setItem(50, createItem(Material.ARROW, "&aNext Page ▶"));
+            inv.setItem(50, createItem(Material.ARROW, "&a" + UnicodeFont.toSmallCaps("Next Page") + " ▶"));
         }
 
-        // Return button (slot 53)
-        inv.setItem(53, createItem(Material.BARRIER, "&c⬅ Back to Home Management"));
+        inv.setItem(53, createItem(Material.BARRIER, "&c⬅ " + UnicodeFont.toSmallCaps("Back")));
 
         player.openInventory(inv);
     }
 
     public void openIconSearchTextInput(Player player, Home home, boolean isLocked, String category) {
         player.closeInventory();
-        SignInput.open(player, "Search Icon", "", search -> {
+        SignInput.open(player, UnicodeFont.toSmallCaps("Search Icon"), "", search -> {
             runSync(player, () -> {
                 String trimmed = search.trim();
                 if (trimmed.equalsIgnoreCase("cancel")) {
@@ -376,7 +285,6 @@ public class InventoryHomesUI implements HomesUI {
             String name = mat.name().toLowerCase(Locale.ROOT);
             if (!name.contains(lowerQuery)) continue;
 
-            // Filter by category
             if ("blocks".equals(category) && !mat.isBlock()) continue;
             if ("food".equals(category) && !mat.isEdible()) continue;
             if ("tools".equals(category)) {
@@ -400,74 +308,22 @@ public class InventoryHomesUI implements HomesUI {
         return results;
     }
 
+    /**
+     * Delete confirmation with LIME_STAINED_GLASS_PANE for Confirm and RED_STAINED_GLASS_PANE for Cancel
+     */
     @Override
     public void openDeleteConfirmation(Player player, Home home) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.DELETE_CONFIRM, home, false), 27, ChatColor.DARK_RED + "Delete Home?");
+        String title = UnicodeFont.toSmallCaps("Delete Home?");
+        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.DELETE_CONFIRM, home, false), 27, title);
 
         ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 27; i++) {
             inv.setItem(i, border);
         }
 
-        inv.setItem(11, createItem(Material.LIME_CONCRETE, "&aYES - Confirm Delete", "&cThis action is permanent!"));
-        inv.setItem(15, createItem(Material.RED_CONCRETE, "&cNO - Keep Home", "&7Cancel deletion"));
+        inv.setItem(11, createItem(Material.LIME_STAINED_GLASS_PANE, "&a&l" + UnicodeFont.toSmallCaps("YES - Confirm Delete"), "&cThis action is permanent!"));
+        inv.setItem(15, createItem(Material.RED_STAINED_GLASS_PANE, "&c&l" + UnicodeFont.toSmallCaps("NO - Cancel"), "&7Cancel deletion"));
 
         player.openInventory(inv);
-    }
-
-    public void openTeamHomeMenu(Player player) {
-        openTeamHomeMenu(player, "", -1);
-    }
-
-    public void openTeamHomeMenu(Player player, String homeName, int slotIndex) {
-        Inventory inv = Bukkit.createInventory(new HomesHolder(HomesHolder.Type.TEAM_MANAGEMENT, homeName, slotIndex), 27, ChatColor.DARK_BLUE + "Team Home Options");
-
-        ItemStack border = createItem(Material.LIGHT_GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, border);
-        }
-
-        if (slotIndex == -1) {
-            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome"));
-            inv.setItem(13, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home"));
-            inv.setItem(15, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome"));
-        } else {
-            inv.setItem(11, createItem(Material.EMERALD, "&a🚩 Set Team Home", "&7Click to run /team sethome " + homeName));
-            inv.setItem(12, createItem(Material.ENDER_PEARL, "&a⚡ Team Teleport", "&7Click to run /team home " + homeName));
-            inv.setItem(14, createItem(Material.REDSTONE, "&c❌ Team Delete", "&7Click to run /team delhome " + homeName));
-
-            List<String> criteriaLore = new ArrayList<>();
-            criteriaLore.add("&7Upgrade your rank to access this home.");
-            criteriaLore.add("&7Only deletion and 3 teleports are allowed.");
-            criteriaLore.add("");
-            criteriaLore.addAll(getRankCriteriaLore(slotIndex));
-
-            inv.setItem(13, createItem(
-                    Material.BARRIER,
-                    "&c⚠️ Locked by Rank",
-                    criteriaLore.toArray(new String[0])
-            ));
-        }
-
-        inv.setItem(22, createItem(Material.ARROW, "&e⬅ Return to Homes Menu"));
-
-        player.openInventory(inv);
-    }
-
-    /**
-     * Opens a SignInput prompting for a home name, then opens the team home action menu.
-     * Always accessible from the main homes menu regardless of how many homes exist.
-     */
-    public void openTeamHomeInputMenu(Player player) {
-        SignInput.open(player, "Team Home", "home", name -> {
-            runSync(player, () -> {
-                String trimmed = name.trim();
-                if (trimmed.isEmpty() || trimmed.equalsIgnoreCase("cancel")) {
-                    openMainHomesMenu(player);
-                    return;
-                }
-                openTeamHomeMenu(player, trimmed, -1);
-            });
-        });
     }
 }

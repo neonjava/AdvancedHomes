@@ -1,7 +1,7 @@
 # Advanced Homes Plugin Configuration
 
-# Maximum number of home slots displayed in the UI (cannot exceed 10)
-max-homes: 10
+# Maximum number of home slots displayed in the UI (up to 90)
+max-homes: 90
 
 # Delay in seconds before a player is teleported to a home (0 for instant)
 teleport-delay: 3
@@ -35,8 +35,9 @@ mysql:
 # Custom messages configuration
 messages:
   need-rank: "&cYou need <rank> rank to access this home slot!"
-  buy-rank: "&eBuy from &b&ndiscord.ninemc.fun&e store section"
-  locked-warning: "&cThis home slot is locked by your rank. Upgrade to access more homes!"
-  buy-ranks-warning: "&eRanks can be purchased at &b&ndiscord.ninemc.fun&e in the store section."
+  buy-rank: "&ePurchase rank upgrades at &b&nneonjava.in&e store section!"
+  locked-tooltip: "&fVisit &b&nneonjava.in&f for even more home slots"
+  locked-warning: "&cThis home slot is locked by your rank. Visit &b&nneonjava.in&c to upgrade!"
+  buy-ranks-warning: "&eRanks can be purchased at &b&nneonjava.in&e in the store section."
   home-expired: "&cThis home has expired! You cannot teleport to it anymore."
-  need-rank-teleport: "&cYou need a higher rank to access this home! Buy ranks from &b&ndiscord.ninemc.fun&e in the store section."
+  need-rank-teleport: "&cYou need a higher rank to access this home! Visit &b&nneonjava.in&c to unlock."

@@ -29,6 +29,10 @@ public class HomesHolder implements InventoryHolder {
         this(type, null, false, 0, homeName, "all", slotIndex);
     }
 
+    public HomesHolder(Type type, int page, String searchQuery, String category, int slotIndex) {
+        this(type, null, false, page, searchQuery, category, slotIndex);
+    }
+
     public HomesHolder(Type type, Home home, boolean isLocked) {
         this(type, home, isLocked, 0, "", "all", -1);
     }
