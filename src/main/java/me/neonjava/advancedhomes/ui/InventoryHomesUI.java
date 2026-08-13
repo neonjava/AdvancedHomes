@@ -269,7 +269,7 @@ public class InventoryHomesUI implements HomesUI {
         if (finalPage > 0) {
             inv.setItem(48, createItem(Material.ARROW, "&a◀ " + UnicodeFont.toSmallCaps("Previous Page")));
         }
-        inv.setItem(49, createItem(Material.BOOK, "&bPage " + (finalPage + 1) + " of " + totalPages));
+        inv.setItem(49, createItem(Material.BOOK, "&bPage " + (finalPage + 1) + " of " + totalPages, "&7Plugin by &b&nneonjava.in"));
         if (finalPage < totalPages - 1) {
             inv.setItem(50, createItem(Material.ARROW, "&a" + UnicodeFont.toSmallCaps("Next Page") + " ▶"));
         }
