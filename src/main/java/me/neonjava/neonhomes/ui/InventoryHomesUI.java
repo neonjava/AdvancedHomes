@@ -157,7 +157,9 @@ public class InventoryHomesUI implements HomesUI {
 
     @Override
     public void openCreateHomeFlow(Player player, int slotIndex) {
-        openCreateHomeTextInput(player);
+        String autoName = plugin.getHomeManager().getNextAvailableHomeName(player.getUniqueId());
+        plugin.getHomeManager().addHome(player, autoName);
+        openMainHomesMenu(player);
     }
 
     public void openCreateHomeTextInput(Player player) {

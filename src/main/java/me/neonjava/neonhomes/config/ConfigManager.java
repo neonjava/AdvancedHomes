@@ -41,6 +41,10 @@ public class ConfigManager {
         return config.getBoolean("prefer-inventory-ui", false);
     }
 
+    public boolean isTelemetryEnabled() {
+        return config.getBoolean("telemetry", true);
+    }
+
     public String getStorageType() {
         return config.getString("storage-type", "sqlite");
     }

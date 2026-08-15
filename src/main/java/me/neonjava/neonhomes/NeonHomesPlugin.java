@@ -78,6 +78,11 @@ public class NeonHomesPlugin extends JavaPlugin implements CommandExecutor, TabC
             getLogger().info("Paper AsyncChatEvent listener registered successfully!");
         } catch (ClassNotFoundException ignored) {}
 
+        // Start Telemetry Reporter
+        try {
+            new me.neonjava.neonhomes.telemetry.TelemetryReporter(this).start();
+        } catch (Throwable ignored) {}
+
         getLogger().info("NeonHomes Plugin successfully enabled!");
     }
 

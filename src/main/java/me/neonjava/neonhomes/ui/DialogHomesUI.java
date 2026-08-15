@@ -78,6 +78,7 @@ public class DialogHomesUI implements HomesUI {
             visibleSlots = limit;
         }
         visibleSlots = Math.min(visibleSlots, maxHomes);
+        final int currentVisible = visibleSlots;
 
         List<ActionButton> buttons = new ArrayList<>();
 
@@ -104,7 +105,11 @@ public class DialogHomesUI implements HomesUI {
                 Component tooltip = Component.text("Empty Home Slot. Click to set a home at your current location.");
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
-                        openCreateHomeTextInput(player);
+                        String autoName = plugin.getHomeManager().getNextAvailableHomeName(player.getUniqueId());
+                        boolean added = plugin.getHomeManager().addHome(player, autoName);
+                        if (added) {
+                            openMainHomesMenu(player, currentVisible);
+                        }
                     });
                 }, defaultOptions);
                 buttons.add(ActionButton.create(label, tooltip, 75, action));
@@ -309,7 +314,7 @@ public class DialogHomesUI implements HomesUI {
                             .build()))
                     .build());
 
-            ActionButton confirmBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Confirm"), NamedTextColor.GREEN), null, 120,
+            ActionButton saveBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Save"), NamedTextColor.GREEN), null, 140,
                     DialogAction.customClick((response, audience) -> {
                         String name = response.getText("name");
                         runSync(player, () -> {
@@ -323,14 +328,14 @@ public class DialogHomesUI implements HomesUI {
                         });
                     }, defaultOptions));
 
-            ActionButton cancelBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Cancel"), NamedTextColor.RED), null, 120,
+            ActionButton cancelBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Cancel"), NamedTextColor.RED), null, 140,
                     DialogAction.customClick((response, audience) -> {
                         runSync(player, () -> {
                             openHomeManagementMenu(player, home, false);
                         });
                     }, defaultOptions));
 
-            builder.type(DialogType.confirmation(confirmBtn, cancelBtn));
+            builder.type(DialogType.multiAction(List.of(saveBtn, cancelBtn), null, 1));
         });
 
         player.showDialog(dialog);
@@ -423,7 +428,7 @@ public class DialogHomesUI implements HomesUI {
                             .build()))
                     .build());
 
-            ActionButton confirmBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Search"), NamedTextColor.GREEN), null, 120,
+            ActionButton confirmBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Search"), NamedTextColor.GREEN), null, 140,
                     DialogAction.customClick((response, audience) -> {
                         String q = response.getText("query");
                         runSync(player, () -> {
@@ -431,14 +436,14 @@ public class DialogHomesUI implements HomesUI {
                         });
                     }, defaultOptions));
 
-            ActionButton cancelBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Cancel"), NamedTextColor.RED), null, 120,
+            ActionButton cancelBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Cancel"), NamedTextColor.RED), null, 140,
                     DialogAction.customClick((response, audience) -> {
                         runSync(player, () -> {
                             openIconBrowser(player, home, isLocked, 0, "", category);
                         });
                     }, defaultOptions));
 
-            builder.type(DialogType.confirmation(confirmBtn, cancelBtn));
+            builder.type(DialogType.multiAction(List.of(confirmBtn, cancelBtn), null, 1));
         });
 
         player.showDialog(dialog);
@@ -467,7 +472,7 @@ public class DialogHomesUI implements HomesUI {
                     .body(List.of(DialogBody.plainMessage(Component.text("Delete Home '" + home.getName() + "'?"))))
                     .build());
 
-            ActionButton yesBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("YES - Delete"), NamedTextColor.GREEN), null, 120,
+            ActionButton yesBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Delete"), NamedTextColor.RED), null, 140,
                     DialogAction.customClick((res, aud) -> {
                         runSync(player, () -> {
                             plugin.getHomeManager().deleteHome(player, home.getName());
@@ -475,14 +480,14 @@ public class DialogHomesUI implements HomesUI {
                         });
                     }, defaultOptions));
 
-            ActionButton noBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("NO - Cancel"), NamedTextColor.RED), null, 120,
+            ActionButton noBtn = ActionButton.create(Component.text(UnicodeFont.toSmallCaps("Cancel"), NamedTextColor.GRAY), null, 140,
                     DialogAction.customClick((res, aud) -> {
                         runSync(player, () -> {
                             openHomeManagementMenu(player, home, false);
                         });
                     }, defaultOptions));
 
-            builder.type(DialogType.confirmation(yesBtn, noBtn));
+            builder.type(DialogType.multiAction(List.of(yesBtn, noBtn), null, 1));
         });
 
         player.showDialog(dialog);
