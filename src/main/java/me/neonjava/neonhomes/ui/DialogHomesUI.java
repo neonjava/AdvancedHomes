@@ -73,18 +73,9 @@ public class DialogHomesUI implements HomesUI {
         int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
         int maxHomes = plugin.getConfigManager().getMaxHomes();
 
-        // If visibleSlots is 0 (default call), determine initial visible slots:
-        // Show up to the player's limit, or if player limit has a next rank, show up to next rank's tier
+        // If visibleSlots is 0 (default call), only show the slots the player can access (player limit)
         if (visibleSlots <= 0) {
             visibleSlots = limit;
-            // Find next rank tier above player limit to show initially or default to player limit
-            java.util.Map<String, Integer> ranks = plugin.getConfigManager().getRanks();
-            for (int rankCap : ranks.values()) {
-                if (rankCap > limit) {
-                    visibleSlots = Math.min(rankCap, maxHomes);
-                    break;
-                }
-            }
         }
         visibleSlots = Math.min(visibleSlots, maxHomes);
 
