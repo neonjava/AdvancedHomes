@@ -64,17 +64,33 @@ public class DialogHomesUI implements HomesUI {
 
     /**
      * Paper Dialog Main Homes selection menu:
-     * Buttons arranged in 6 columns: [Home 1] [Home 2] [Home 3] [Home 4] [Home 5] [Locked]
+     * Displays home slots up to the visible limit (defaults to player limit + next rank step)
+     * with an extra "+ Show More" button to expand to the next rank tier until maxHomes.
      */
     @Override
-    public void openMainHomesMenu(Player player, int page) {
+    public void openMainHomesMenu(Player player, int visibleSlots) {
         List<Home> homes = plugin.getHomeManager().getHomes(player.getUniqueId());
         int limit = plugin.getHomeManager().getPlayerHomeLimit(player);
         int maxHomes = plugin.getConfigManager().getMaxHomes();
 
+        // If visibleSlots is 0 (default call), determine initial visible slots:
+        // Show up to the player's limit, or if player limit has a next rank, show up to next rank's tier
+        if (visibleSlots <= 0) {
+            visibleSlots = limit;
+            // Find next rank tier above player limit to show initially or default to player limit
+            java.util.Map<String, Integer> ranks = plugin.getConfigManager().getRanks();
+            for (int rankCap : ranks.values()) {
+                if (rankCap > limit) {
+                    visibleSlots = Math.min(rankCap, maxHomes);
+                    break;
+                }
+            }
+        }
+        visibleSlots = Math.min(visibleSlots, maxHomes);
+
         List<ActionButton> buttons = new ArrayList<>();
 
-        for (int i = 0; i < maxHomes; i++) {
+        for (int i = 0; i < visibleSlots; i++) {
             final int slotIndex = i;
             if (i < homes.size()) {
                 Home home = homes.get(i);
@@ -93,7 +109,7 @@ public class DialogHomesUI implements HomesUI {
 
                 buttons.add(ActionButton.create(label, tooltip, 75, action));
             } else if (i < limit) {
-                Component label = Component.text("+ " + UnicodeFont.toSmallCaps("Create Home"), NamedTextColor.GREEN);
+                Component label = Component.text("+ " + UnicodeFont.toSmallCaps("New Home"), NamedTextColor.GREEN);
                 Component tooltip = Component.text("Empty Home Slot. Click to set a home at your current location.");
                 DialogAction action = DialogAction.customClick((response, audience) -> {
                     runSync(player, () -> {
@@ -117,6 +133,29 @@ public class DialogHomesUI implements HomesUI {
             }
         }
 
+        // If there are more slots available to reveal up to maxHomes, add the "Show More" button
+        if (visibleSlots < maxHomes) {
+            int nextVisible = maxHomes;
+            java.util.Map<String, Integer> ranks = plugin.getConfigManager().getRanks();
+            for (int rankCap : ranks.values()) {
+                if (rankCap > visibleSlots) {
+                    nextVisible = Math.min(rankCap, maxHomes);
+                    break;
+                }
+            }
+            final int targetSlots = nextVisible;
+
+            Component showMoreLabel = Component.text("▶ " + UnicodeFont.toSmallCaps("Show More"), NamedTextColor.YELLOW);
+            Component showMoreTooltip = Component.text("Click to reveal more rank slots (up to " + targetSlots + " slots)");
+            DialogAction showMoreAction = DialogAction.customClick((response, audience) -> {
+                runSync(player, () -> {
+                    openMainHomesMenu(player, targetSlots);
+                });
+            }, defaultOptions);
+
+            buttons.add(ActionButton.create(showMoreLabel, showMoreTooltip, 85, showMoreAction));
+        }
+
         String title = UnicodeFont.toSmallCaps("Homes");
         Dialog dialog = Dialog.create(factory -> {
             DialogRegistryEntry.Builder builder = factory.empty();
@@ -125,7 +164,7 @@ public class DialogHomesUI implements HomesUI {
                     .afterAction(DialogBase.DialogAfterAction.CLOSE)
                     .body(List.of(DialogBody.plainMessage(Component.text("Select a home slot:"))))
                     .build());
-            // 6 columns, compact single row
+            // 6 columns
             builder.type(DialogType.multiAction(buttons, null, 6));
         });
 

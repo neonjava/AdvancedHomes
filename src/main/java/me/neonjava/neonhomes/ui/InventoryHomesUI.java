@@ -99,7 +99,7 @@ public class InventoryHomesUI implements HomesUI {
             } else if (globalSlotIndex < limit) {
                 inv.setItem(i, createItem(
                         Material.WHITE_BED,
-                        "&a+ " + UnicodeFont.toSmallCaps("Create Home"),
+                        "&a+ " + UnicodeFont.toSmallCaps("New Home"),
                         "&7Empty Home Slot",
                         "&eClick to create a home here"
                 ));
