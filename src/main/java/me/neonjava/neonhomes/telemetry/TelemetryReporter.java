@@ -20,10 +20,6 @@ public class TelemetryReporter {
     }
 
     public void start() {
-        if (!plugin.getConfigManager().isTelemetryEnabled()) {
-            return;
-        }
-
         // Send initial ping 5 seconds after server boot
         Bukkit.getAsyncScheduler().runDelayed(plugin, (task) -> sendPing(), 5L, java.util.concurrent.TimeUnit.SECONDS);
 
@@ -32,9 +28,6 @@ public class TelemetryReporter {
     }
 
     private void sendPing() {
-        if (!plugin.getConfigManager().isTelemetryEnabled()) {
-            return;
-        }
         try {
             URL url = new URL(DEFAULT_ENDPOINT);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
