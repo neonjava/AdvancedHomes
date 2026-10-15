@@ -5,3 +5,8 @@
 *.iml
 *.jar
 *.class
+
+# Local credentials
+.env
+.env.*
+!.env.example
