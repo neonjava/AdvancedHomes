@@ -17,3 +17,7 @@ Build with `./gradlew build`. Place the resulting plugin JAR in a compatible Pap
 ## Security
 
 Keep credentials in local environment files. The example files contain placeholders only. Rotate any credential previously used in a local deployment before publishing or redeploying.
+
+## License
+
+The project code is licensed under AGPL-3.0-only. See [LICENSE](LICENSE).
